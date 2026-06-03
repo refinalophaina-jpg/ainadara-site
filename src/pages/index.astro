@@ -1,38 +1,127 @@
 ---
 import Base from "../layouts/Base.astro";
+import Glyph from "../components/Glyph.astro";
 import { SITE, SUBDOMAINS } from "../data/site";
 ---
 
 <Base path="/">
-  <header style="margin-bottom: 2.5rem;">
-    <h1 style="font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 .5rem; letter-spacing: -0.02em;">
-      {SITE.name}
-    </h1>
-    <p style="color: var(--muted); font-size: 1.15rem; margin: 0 0 1.5rem;">{SITE.tagline}</p>
-    <p style="font-size: 1.05rem;">{SITE.bio}</p>
+  <!-- HEADER -->
+  <header class="reveal reveal-1">
+    <div class="header-row">
+      <a class="mark" href="/" aria-label="AinaDara home">
+        <svg class="mark-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="32" cy="32" r="28" fill="#ede8dd" stroke="#2d3428" stroke-width="1.5" />
+          <g stroke="#cc785c" fill="none" stroke-width="1.2" stroke-linecap="round">
+            <circle cx="22" cy="26" r="7" /><circle cx="22" cy="26" r="4" /><circle cx="22" cy="26" r="1.5" />
+          </g>
+          <g stroke="#4a3d7a" stroke-width="1.2" stroke-linecap="round">
+            <line x1="44" y1="24" x2="49" y2="18" /><line x1="44" y1="24" x2="51" y2="24" />
+            <line x1="44" y1="24" x2="49" y2="30" /><line x1="44" y1="24" x2="42" y2="32" />
+          </g>
+          <path d="M 18 42 Q 32 52 46 42" stroke="#4a5c28" stroke-width="1.4" fill="none" stroke-linecap="round" />
+        </svg>
+        <span class="mark-text"><span class="light">Aina</span><span class="bold">Dara</span></span>
+      </a>
+      <div class="controls">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5" />
+            <line x1="12" y1="2" x2="12" y2="4" /><line x1="12" y1="20" x2="12" y2="22" />
+            <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" /><line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
+            <line x1="2" y1="12" x2="4" y2="12" /><line x1="20" y1="12" x2="22" y2="12" />
+            <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" /><line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
+          </svg>
+          <svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        </button>
+      </div>
+    </div>
   </header>
 
-  <section aria-labelledby="projects">
-    <h2 id="projects" style="font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);">
-      Explore
-    </h2>
-    <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
-      {SUBDOMAINS.map((s) => (
-        <li style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem;">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:.5rem;">
-            {s.live
-              ? <a href={`https://${s.host}`} style="font-weight: 600; font-size: 1.05rem;">{s.label}</a>
-              : <span style="font-weight: 600; font-size: 1.05rem;">{s.label}</span>}
-            {!s.live && <span style="font-size:.7rem; color:var(--muted); border:1px solid var(--border); border-radius:6px; padding:.1rem .4rem;">soon</span>}
-          </div>
-          <p style="margin:.4rem 0 0; color: var(--muted); font-size:.92rem;">{s.blurb}</p>
-          <p style="margin:.5rem 0 0; font-size:.8rem; color: var(--muted);">{s.host}</p>
-        </li>
-      ))}
-    </ul>
+  <!-- HERO — logo-forward, no intro/about -->
+  <section class="hero">
+    <div class="hero-logo reveal reveal-2">
+      <svg viewBox="100 80 480 440" xmlns="http://www.w3.org/2000/svg" aria-label="AinaDara logo">
+        <circle cx="340" cy="230" r="152" fill="#ede8dd" />
+        <circle cx="340" cy="230" r="152" fill="none" stroke="#2d3428" stroke-width="2.5" />
+        <g stroke="#cc785c" fill="none" stroke-linecap="round">
+          <circle cx="252" cy="202" r="56" stroke-width="1.5" /><circle cx="252" cy="202" r="44" stroke-width="1.8" />
+          <circle cx="252" cy="202" r="32" stroke-width="2.0" /><circle cx="252" cy="202" r="20" stroke-width="2.2" />
+          <circle cx="252" cy="202" r="8" stroke-width="2.2" />
+          <line x1="260" y1="202" x2="272" y2="202" stroke-width="2.2" />
+          <path d="M 272 202 A 20 20 0 0 1 252 182" stroke-width="2.2" />
+        </g>
+        <circle cx="252" cy="202" r="3.5" fill="#cc785c" />
+        <g stroke="#4a3d7a" stroke-linecap="round">
+          <line x1="441" y1="192" x2="445" y2="141" stroke-width="2.2" /><line x1="440" y1="193" x2="476" y2="147" stroke-width="2.2" />
+          <line x1="440" y1="195" x2="487" y2="168" stroke-width="2.2" /><line x1="441" y1="198" x2="497" y2="193" stroke-width="2.0" />
+          <line x1="441" y1="200" x2="484" y2="218" stroke-width="2.0" /><line x1="440" y1="202" x2="474" y2="236" stroke-width="1.8" />
+          <line x1="439" y1="204" x2="454" y2="245" stroke-width="1.8" /><line x1="435" y1="204" x2="432" y2="238" stroke-width="1.6" />
+          <line x1="432" y1="203" x2="417" y2="229" stroke-width="1.4" /><line x1="440" y1="192" x2="455" y2="163" stroke-width="1.2" />
+          <line x1="440" y1="194" x2="471" y2="166" stroke-width="1.2" /><line x1="441" y1="197" x2="477" y2="186" stroke-width="1.2" />
+          <line x1="441" y1="199" x2="475" y2="204" stroke-width="1.1" /><line x1="440" y1="201" x2="465" y2="217" stroke-width="1.0" />
+          <line x1="439" y1="203" x2="453" y2="225" stroke-width="0.9" /><line x1="436" y1="204" x2="439" y2="226" stroke-width="0.8" />
+        </g>
+        <circle cx="435" cy="198" r="4" fill="#4a3d7a" />
+        <path d="M 208 292 Q 340 402 472 292" fill="none" stroke="#4a5c28" stroke-width="2.6" stroke-linecap="round" />
+        <path d="M 222 306 Q 340 410 458 306" fill="none" stroke="#4a5c28" stroke-width="2.0" stroke-linecap="round" opacity="0.68" />
+        <path d="M 236 319 Q 340 416 444 319" fill="none" stroke="#4a5c28" stroke-width="1.4" stroke-linecap="round" opacity="0.38" />
+        <circle cx="340" cy="270" r="3.5" fill="#cc785c" opacity="0.45" />
+      </svg>
+    </div>
+    <h1 class="hero-wordmark reveal reveal-2"><span class="light">Aina</span><span class="bold">Dara</span></h1>
+    <p class="hero-eyebrow reveal reveal-3">{SITE.eyebrow}</p>
   </section>
 
-  <footer style="margin-top: 4rem; color: var(--muted); font-size: .85rem;">
-    <p>© {SITE.name} · <a href={`https://${SITE.domain}`}>{SITE.domain}</a></p>
+  <div class="ornament reveal reveal-3" aria-hidden="true">
+    <svg viewBox="0 0 96 28" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 6 16 Q 18 4 30 16 T 54 16 T 78 16 T 92 16" stroke="currentColor" fill="none" stroke-width="1.2" stroke-linecap="round" opacity="0.55" />
+      <path d="M 10 22 Q 22 12 34 22 T 58 22 T 80 22" stroke="currentColor" fill="none" stroke-width="0.8" stroke-linecap="round" opacity="0.3" />
+      <circle cx="48" cy="9" r="1.6" fill="currentColor" opacity="0.7" />
+    </svg>
+  </div>
+
+  <!-- PROJECTS / HUB -->
+  <section class="projects" id="projects">
+    <div class="section-head">
+      <h2>The workshop</h2>
+      <span class="count">{SUBDOMAINS.length} threads</span>
+    </div>
+    <div class="project-grid">
+      {SUBDOMAINS.map((s) => {
+        const Tag = s.live ? "a" : "div";
+        const props = s.live ? { href: `https://${s.host}` } : { "aria-disabled": "true" };
+        return (
+          <Tag class="project" {...props}>
+            <div class="project-head">
+              <Glyph name={s.glyph} />
+              <span class={`project-status${s.live ? " live" : ""}`}>{s.live ? "Live" : "Soon"}</span>
+            </div>
+            <h3 class="project-title">{s.label}</h3>
+            <p class="project-desc">{s.blurb}</p>
+            <span class="project-arrow">
+              {s.live ? "Open" : s.host} <span class="arrow">→</span>
+            </span>
+          </Tag>
+        );
+      })}
+    </div>
+  </section>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 96 28" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 6 16 Q 18 4 30 16 T 54 16 T 78 16 T 92 16" stroke="currentColor" fill="none" stroke-width="1.2" stroke-linecap="round" opacity="0.55" />
+      <path d="M 10 22 Q 22 12 34 22 T 58 22 T 80 22" stroke="currentColor" fill="none" stroke-width="0.8" stroke-linecap="round" opacity="0.3" />
+      <circle cx="48" cy="9" r="1.6" fill="currentColor" opacity="0.7" />
+    </svg>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-row">
+      <div class="footer-mark"><span style="font-weight:300">Aina</span><span style="font-weight:700">Dara</span></div>
+      <div class="footer-meta">© 2026 · A clinical pharmacy workshop · <a href={`mailto:${SITE.email}`}>{SITE.email}</a></div>
+    </div>
   </footer>
 </Base>
