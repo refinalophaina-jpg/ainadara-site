@@ -1,29 +1,26 @@
 // Single source of truth for site content. Edit here, not in templates.
 
 export const SITE = {
-  name: "Aina Dara",
+  name: "AinaDara",
   domain: "ainadara.com",
   url: "https://ainadara.com",
-  tagline: "Building at the intersection of clinical science, pharmacy, and applied AI.",
-  // Short bio shown on the home page.
-  bio:
-    "I'm Aina Dara — a builder working across clinical theory, pharmacy, finance, and " +
-    "applied language models. This hub links the things I'm making and learning in the open.",
-  // Open Graph / social card image (place a 1200×630 PNG at /public/og.png).
+  email: "hello@ainadara.com",
+  // One terse line under the wordmark. Not a bio — just orientation.
+  eyebrow: "A clinical pharmacy workshop — tools, learning, and applied AI.",
+  // Open Graph / social card (1200×630 PNG at /public/og.png).
   ogImage: "/og.png",
-  twitter: "", // e.g. "@ainadara" — used for twitter:site if set
-  // Plausible analytics: set to your dashboard domain to activate (placeholder by default).
+  // Privacy-friendly Plausible analytics — active when set.
   plausibleDomain: "ainadara.com",
   plausibleSrc: "https://plausible.io/js/script.js",
 };
 
-// Subdomain hub links. `live` flips the card from "coming soon" to an active link.
+// Hub cards. `glyph` maps to Glyph.astro. `live:false` shows a "Soon" badge.
 export const SUBDOMAINS = [
-  { key: "home",        label: "Home",        host: "home.ainadara.com",        blurb: "Personal landing & now-page.",            live: false },
-  { key: "learn",       label: "Learn",       host: "learn.ainadara.com",       blurb: "Notes, courses, and write-ups.",          live: false },
-  { key: "finance",     label: "Finance",     host: "finance.ainadara.com",     blurb: "Money models & experiments.",             live: false },
-  { key: "pharmacy",    label: "Pharmacy",    host: "pharmacy.ainadara.com",    blurb: "Pharmacy practice & tools.",              live: false },
-  { key: "llm",         label: "LLM",         host: "llm.ainadara.com",         blurb: "ClinTheory LLM work.",                    live: false },
-  { key: "agents",      label: "Agents",      host: "agents.ainadara.com",      blurb: "Autonomous agent experiments.",           live: false },
-  { key: "automations", label: "Automations", host: "automations.ainadara.com", blurb: "Workflows that run themselves.",          live: false },
+  { key: "pharmacy",    label: "Pharmacy",    host: "pharmacy.ainadara.com",    glyph: "spiral", live: false, blurb: "Therapeutic drug monitoring and bedside pharmacotherapy tools." },
+  { key: "learn",       label: "Learn",       host: "learn.ainadara.com",       glyph: "book",   live: false, blurb: "BCPS prep, reasoning drills, and high-yield patterns." },
+  { key: "llm",         label: "LLM",         host: "llm.ainadara.com",         glyph: "rays",   live: false, blurb: "ClinTheory — LLM-assisted clinical reasoning." },
+  { key: "agents",      label: "Agents",      host: "agents.ainadara.com",      glyph: "nodes",  live: false, blurb: "Autonomous agents for research and workflow." },
+  { key: "automations", label: "Automations", host: "automations.ainadara.com", glyph: "waves",  live: false, blurb: "Workflows that run themselves." },
+  { key: "finance",     label: "Finance",     host: "finance.ainadara.com",     glyph: "chart",  live: false, blurb: "Money models and quiet experiments." },
+  { key: "home",        label: "Home",        host: "home.ainadara.com",        glyph: "hearth", live: false, blurb: "Personal landing and a now-page." },
 ];
