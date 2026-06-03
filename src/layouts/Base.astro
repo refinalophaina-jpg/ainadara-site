@@ -1,0 +1,74 @@
+---
+import { SITE } from "../data/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  path?: string;
+}
+const { title, description, path = "/" } = Astro.props;
+const pageTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
+const desc = description ?? SITE.bio;
+const canonical = new URL(path, SITE.url).toString();
+const ogImage = new URL(SITE.ogImage, SITE.url).toString();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href={canonical} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={desc} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={desc} />
+    <meta name="twitter:image" content={ogImage} />
+    {SITE.twitter && <meta name="twitter:site" content={SITE.twitter} />}
+
+    <!--
+      Plausible analytics — privacy-friendly, cookie-free.
+      Active when SITE.plausibleDomain is set in src/data/site.ts.
+      Replace the src/domain if you self-host Plausible.
+    -->
+    {SITE.plausibleDomain && (
+      <script
+        is:inline
+        defer
+        data-domain={SITE.plausibleDomain}
+        src={SITE.plausibleSrc}
+      ></script>
+    )}
+
+    <style is:global>
+      :root {
+        --bg: #0b0c10; --fg: #e8e8ea; --muted: #9aa0aa;
+        --card: #14161d; --accent: #6ea8fe; --border: #232733;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--fg); line-height: 1.6; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      main { max-width: 860px; margin: 0 auto; padding: 4rem 1.25rem 6rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
