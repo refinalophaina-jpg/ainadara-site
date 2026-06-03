@@ -1,0 +1,38 @@
+---
+import Base from "../layouts/Base.astro";
+import { SITE, SUBDOMAINS } from "../data/site";
+---
+
+<Base path="/">
+  <header style="margin-bottom: 2.5rem;">
+    <h1 style="font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 .5rem; letter-spacing: -0.02em;">
+      {SITE.name}
+    </h1>
+    <p style="color: var(--muted); font-size: 1.15rem; margin: 0 0 1.5rem;">{SITE.tagline}</p>
+    <p style="font-size: 1.05rem;">{SITE.bio}</p>
+  </header>
+
+  <section aria-labelledby="projects">
+    <h2 id="projects" style="font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);">
+      Explore
+    </h2>
+    <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
+      {SUBDOMAINS.map((s) => (
+        <li style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:.5rem;">
+            {s.live
+              ? <a href={`https://${s.host}`} style="font-weight: 600; font-size: 1.05rem;">{s.label}</a>
+              : <span style="font-weight: 600; font-size: 1.05rem;">{s.label}</span>}
+            {!s.live && <span style="font-size:.7rem; color:var(--muted); border:1px solid var(--border); border-radius:6px; padding:.1rem .4rem;">soon</span>}
+          </div>
+          <p style="margin:.4rem 0 0; color: var(--muted); font-size:.92rem;">{s.blurb}</p>
+          <p style="margin:.5rem 0 0; font-size:.8rem; color: var(--muted);">{s.host}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <footer style="margin-top: 4rem; color: var(--muted); font-size: .85rem;">
+    <p>© {SITE.name} · <a href={`https://${SITE.domain}`}>{SITE.domain}</a></p>
+  </footer>
+</Base>
