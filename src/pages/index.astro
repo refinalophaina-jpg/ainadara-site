@@ -89,23 +89,21 @@ import { SITE, SUBDOMAINS } from "../data/site";
       <span class="count">{SUBDOMAINS.length} threads</span>
     </div>
     <div class="project-grid">
-      {SUBDOMAINS.map((s) => {
-        const Tag = s.live ? "a" : "div";
-        const props = s.live ? { href: `https://${s.host}` } : { "aria-disabled": "true" };
-        return (
-          <Tag class="project" {...props}>
-            <div class="project-head">
-              <Glyph name={s.glyph} />
-              <span class={`project-status${s.live ? " live" : ""}`}>{s.live ? "Live" : "Soon"}</span>
-            </div>
-            <h3 class="project-title">{s.label}</h3>
-            <p class="project-desc">{s.blurb}</p>
-            <span class="project-arrow">
-              {s.live ? "Open" : s.host} <span class="arrow">→</span>
-            </span>
-          </Tag>
-        );
-      })}
+      {SUBDOMAINS.map((s) => (
+        <a
+          class="project"
+          href={s.live ? `https://${s.host}` : undefined}
+          aria-disabled={s.live ? undefined : "true"}
+        >
+          <div class="project-head">
+            <Glyph name={s.glyph} />
+            <span class={`project-status${s.live ? " live" : ""}`}>{s.live ? "Live" : "Soon"}</span>
+          </div>
+          <h3 class="project-title">{s.label}</h3>
+          <p class="project-desc">{s.blurb}</p>
+          <span class="project-arrow">{s.live ? "Open" : s.host} <span class="arrow">→</span></span>
+        </a>
+      ))}
     </div>
   </section>
 
