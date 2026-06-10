@@ -23,4 +23,5 @@ export const SUBDOMAINS = [
   { key: "automations", label: "Automations", host: "automations.ainadara.com", glyph: "waves",  live: false, blurb: "Workflows that run themselves." },
   { key: "finance",     label: "Finance",     host: "finance.ainadara.com",     glyph: "chart",  live: false, blurb: "Money models and quiet experiments." },
   { key: "home",        label: "Home",        host: "home.ainadara.com",        glyph: "hearth", live: false, blurb: "Personal landing and a now-page." },
+  { key: "viet",        label: "Việt Hub",    host: "viet.ainadara.com",        glyph: "tones",  live: true,  blurb: "Southern Vietnamese learning — spaced repetition, tone drills, and diaspora vocabulary." },
 ];
