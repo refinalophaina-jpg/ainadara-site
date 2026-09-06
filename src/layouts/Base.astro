@@ -166,6 +166,17 @@ const ogImage = new URL(SITE.ogImage, SITE.url).toString();
       [data-theme="dark"] .project-status.live { border-color: rgba(154,173,104,.35); }
       .project-title { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 1.5rem; line-height: 1.2; margin-top: .25rem; }
       .project-desc { font-size: .92rem; line-height: 1.55; color: var(--ink-soft); margin-top: auto; }
+  /* Optional line naming what actually ships on a thread — quiet, tracked, and
+     only rendered when site.ts sets a `version`. */
+  .project-version {
+    margin: 0.35rem 0 0;
+    font-family: "Outfit", system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
       .project-arrow { font-size: .8rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--terracotta); display: inline-flex; align-items: center; gap: .5rem; margin-top: .5rem; }
       .project-arrow .arrow { transition: transform .3s ease; display: inline-block; }
       .project:hover .project-arrow .arrow { transform: translateX(4px); }

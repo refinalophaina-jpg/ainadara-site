@@ -101,6 +101,7 @@ import { SITE, SUBDOMAINS } from "../data/site";
           </div>
           <h3 class="project-title">{s.label}</h3>
           <p class="project-desc">{s.blurb}</p>
+          {s.version && <p class="project-version">{s.version}</p>}
           <span class="project-arrow">{s.host} <span class="arrow">→</span></span>
         </a>
       ))}
