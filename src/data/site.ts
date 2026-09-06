@@ -17,7 +17,7 @@ export const SITE = {
 // Hub cards. `glyph` maps to Glyph.astro. `live:false` shows a "Soon" badge.
 // `version` is optional — when present it names what is actually shipping there.
 export const SUBDOMAINS = [
-  { key: "pharmacy",    label: "Pharmacy",    host: "pharmacy.ainadara.com",    glyph: "spiral", live: true,  version: "Vancomycin TDM v2.0 · Aminoglycosides v2.0", blurb: "Therapeutic drug monitoring at the bedside — AUC-guided vancomycin and aminoglycoside dosing, Bayesian precision fitting, and the pharmacokinetics behind them." },
+  { key: "pharmacy",    label: "Pharmacy",    host: "pharmacy.ainadara.com",    glyph: "spiral", live: true,  version: "Vancomycin TDM v2.1 · Aminoglycosides v2.0", blurb: "Therapeutic drug monitoring at the bedside — AUC-guided vancomycin and aminoglycoside dosing, Bayesian precision fitting, and the pharmacokinetics behind them." },
   { key: "learn",       label: "Learn",       host: "learn.ainadara.com",       glyph: "book",   live: false, blurb: "BCPS prep, reasoning drills, and high-yield patterns." },
   { key: "llm",         label: "LLM",         host: "llm.ainadara.com",         glyph: "rays",   live: false, blurb: "ClinTheory — LLM-assisted clinical reasoning." },
   { key: "agents",      label: "Agents",      host: "agents.ainadara.com",      glyph: "nodes",  live: false, blurb: "Autonomous agents for research and workflow." },
