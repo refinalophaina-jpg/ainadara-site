@@ -77,7 +77,13 @@ button.btn:disabled{opacity:.4}
 .dropzone.over{background:var(--shade);color:var(--ink)}
 .signin{max-width:420px;margin:15vh auto 0;text-align:center;padding:0 1.2rem}
 .signin p{color:var(--ink-soft);font-size:.9rem}
-.signin a.btn{display:inline-block;text-decoration:none;margin-top:1.2rem}
+.signin a.btn{display:inline-block;text-decoration:none;margin-top:1.2rem;
+  font-family:var(--font-body);font-size:.95rem;font-weight:500;
+  padding:.9rem 1.6rem;min-height:48px;min-width:48px;line-height:1.4;
+  border-radius:5px;border:1px solid var(--terracotta)}
+.signin a.btn.primary{background:var(--terracotta);color:var(--paper)}
+.signin a.btn.primary:active{background:color-mix(in srgb,var(--terracotta) 85%,var(--ink) 15%)}
+.signin a.btn:focus-visible{outline:2px solid var(--terracotta);outline-offset:2px}
 `;
 
 const HEAD = (title) => `<!DOCTYPE html>
