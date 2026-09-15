@@ -1,0 +1,9 @@
+{
+  "key": "finance",
+  "label": "Finance",
+  "host": "finance.ainadara.com",
+  "glyph": "chart",
+  "live": false,
+  "order": 5,
+  "blurb": "Money models and quiet experiments."
+}

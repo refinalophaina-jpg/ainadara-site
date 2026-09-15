@@ -1,0 +1,9 @@
+{
+  "key": "home",
+  "label": "Home",
+  "host": "home.ainadara.com",
+  "glyph": "hearth",
+  "live": false,
+  "order": 6,
+  "blurb": "Personal landing and a now-page."
+}

@@ -1,0 +1,10 @@
+{
+  "key": "pharmacy",
+  "label": "Pharmacy",
+  "host": "pharmacy.ainadara.com",
+  "glyph": "spiral",
+  "live": true,
+  "order": 0,
+  "version": "Vancomycin TDM v2.1 · Aminoglycosides v2.0",
+  "blurb": "Therapeutic drug monitoring at the bedside — AUC-guided vancomycin and aminoglycoside dosing, Bayesian precision fitting, and the pharmacokinetics behind them."
+}

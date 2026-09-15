@@ -1,0 +1,9 @@
+{
+  "key": "automations",
+  "label": "Automations",
+  "host": "automations.ainadara.com",
+  "glyph": "waves",
+  "live": false,
+  "order": 4,
+  "blurb": "Workflows that run themselves."
+}

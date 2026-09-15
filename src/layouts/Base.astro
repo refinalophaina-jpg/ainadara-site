@@ -1,5 +1,5 @@
 ---
-import { SITE } from "../data/site";
+import { getEntry } from "astro:content";
 
 interface Props {
   title?: string;
@@ -7,6 +7,7 @@ interface Props {
   path?: string;
 }
 const { title, description, path = "/" } = Astro.props;
+const SITE = (await getEntry("site", "site")).data;
 const pageTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — clinical pharmacy, in code`;
 const desc = description ?? SITE.eyebrow;
 const canonical = new URL(path, SITE.url).toString();

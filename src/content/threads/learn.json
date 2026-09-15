@@ -1,0 +1,9 @@
+{
+  "key": "learn",
+  "label": "Learn",
+  "host": "learn.ainadara.com",
+  "glyph": "book",
+  "live": false,
+  "order": 1,
+  "blurb": "BCPS prep, reasoning drills, and high-yield patterns."
+}

@@ -1,7 +1,12 @@
 ---
+import { getCollection, getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
 import Glyph from "../components/Glyph.astro";
-import { SITE, SUBDOMAINS } from "../data/site";
+
+const SITE = (await getEntry("site", "site")).data;
+const SUBDOMAINS = (await getCollection("threads"))
+  .map((entry) => entry.data)
+  .sort((a, b) => a.order - b.order);
 ---
 
 <Base path="/">
