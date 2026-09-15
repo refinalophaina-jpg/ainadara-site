@@ -3,7 +3,7 @@
   "label": "Learn",
   "host": "learn.ainadara.com",
   "glyph": "book",
-  "live": false,
+  "live": true,
   "order": 1,
   "blurb": "BCPS prep, reasoning drills, and high-yield patterns."
 }
