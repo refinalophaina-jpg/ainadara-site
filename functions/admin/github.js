@@ -39,6 +39,30 @@ function contentsUrl(path) {
   return `${API}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path.split("/").map(encodeURIComponent).join("/")}`;
 }
 
+// ---------------------------------------------------------------------------
+// base64 <-> text — the fix for the UTF-8 mojibake bug (see WIKI.md §15).
+//
+// atob() yields a BINARY string — one character per byte — so a multi-byte
+// UTF-8 character comes back as several Latin-1 characters. Decoding those
+// straight to text turns "—" into "â\u0080\u0094", and because the write
+// path faithfully saves whatever it is given, every round-trip corrupted
+// the content further. These two helpers go through the bytes explicitly
+// and are the only place base64 conversion happens, so a regression test
+// can exercise them directly without a network call.
+// ---------------------------------------------------------------------------
+
+/** Decode a GitHub contents-API base64 payload into a UTF-8 text string. */
+export function decodeBase64Content(base64) {
+  return new TextDecoder("utf-8").decode(
+    Uint8Array.from(atob(base64.replace(/\n/g, "")), (c) => c.charCodeAt(0)),
+  );
+}
+
+/** Encode a UTF-8 text string into the base64 the contents API expects. */
+export function encodeTextContent(text) {
+  return btoa(unescape(encodeURIComponent(text)));
+}
+
 /**
  * Read one file's content and sha, or `null` if it doesn't exist yet — a
  * new thread being created has no prior sha to send back on save.
@@ -50,16 +74,7 @@ export async function getFile(token, path) {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`GitHub read of ${path} failed: ${res.status}`);
   const data = await res.json();
-  // atob() yields a BINARY string — one character per byte — so a multi-byte
-  // UTF-8 character comes back as several Latin-1 characters. Decoding those as
-  // text turns "—" into "â\u0080\u0094", and because the write path faithfully
-  // saves whatever it is given, every round-trip corrupts the content further.
-  // Go through the bytes explicitly.
-  const decoded = data.content
-    ? new TextDecoder("utf-8").decode(
-        Uint8Array.from(atob(data.content.replace(/\n/g, "")), (c) => c.charCodeAt(0)),
-      )
-    : "";
+  const decoded = data.content ? decodeBase64Content(data.content) : "";
   return { sha: data.sha, content: decoded };
 }
 
@@ -88,7 +103,7 @@ export async function listDir(token, path) {
 export async function putFile(token, path, content, message, sha) {
   let base64;
   if (typeof content === "string") {
-    base64 = btoa(unescape(encodeURIComponent(content)));
+    base64 = encodeTextContent(content);
   } else {
     const bytes = content instanceof Uint8Array ? content : new Uint8Array(content);
     let binary = "";

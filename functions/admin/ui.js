@@ -75,6 +75,41 @@ button.btn:disabled{opacity:.4}
 .dropzone{margin-top:1.2rem;border:1px dashed var(--ink-faint);border-radius:6px;
   padding:1.2rem;text-align:center;font-size:.85rem;color:var(--ink-faint)}
 .dropzone.over{background:var(--shade);color:var(--ink)}
+.editGrid{display:flex;flex-direction:column;gap:1.5rem}
+@media (min-width:860px){
+  main{max-width:960px}
+  .editGrid{flex-direction:row;align-items:flex-start}
+  .editGrid>.fieldsCol{flex:1;min-width:0}
+  .editGrid>.previewCol{flex:0 0 280px;position:sticky;top:64px}
+}
+.previewCol{margin-top:.4rem}
+.previewLabel{font-size:.66rem;letter-spacing:.12em;color:var(--ink-faint);text-transform:lowercase;margin-bottom:.5rem}
+.previewCard{background:var(--paper-deep);border:1px solid var(--paper-edge);border-radius:4px;
+  padding:1.1rem;display:flex;flex-direction:column;gap:.7rem;text-decoration:none;color:var(--ink)}
+.previewCard .phead{display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem}
+.previewCard .pglyph{width:36px;height:36px;flex-shrink:0;opacity:.85}
+.previewCard .pstatus{font-size:.6rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-faint);padding:.25rem .55rem;border:1px solid var(--rule);border-radius:999px;white-space:nowrap}
+.previewCard .pstatus.live{color:var(--moss);border-color:rgba(74,92,40,.3)}
+.previewCard .ptitle{font-family:var(--font-display);font-weight:400;font-size:1.2rem;line-height:1.2;margin:0}
+.previewCard .pdesc{font-size:.85rem;line-height:1.5;color:var(--ink-soft);margin:0}
+.previewCard .pversion{margin:0;font-weight:500;font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-faint)}
+.previewCard .parrow{font-size:.72rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--terracotta)}
+.previewCard.notlive{cursor:default}
+.previewCard.notlive .parrow{color:var(--ink-faint)}
+.previewEyebrowCard{background:var(--paper-deep);border:1px solid var(--paper-edge);border-radius:4px;
+  padding:1.4rem 1.1rem;text-align:center}
+.previewEyebrowCard .pwordmark{font-family:var(--font-display);font-size:1.25rem}
+.previewEyebrowCard .pwordmark .light{font-weight:400}
+.previewEyebrowCard .pwordmark .bold{font-weight:400;font-style:italic;color:var(--terracotta)}
+.previewEyebrowCard .peyebrow{font-size:.8rem;color:var(--ink-soft);margin-top:.6rem}
+[data-theme="dark"] .previewCard svg [stroke="#cc785c"]{stroke:var(--terracotta)}
+[data-theme="dark"] .previewCard svg [fill="#cc785c"]{fill:var(--terracotta)}
+[data-theme="dark"] .previewCard svg [stroke="#4a3d7a"]{stroke:var(--purple)}
+[data-theme="dark"] .previewCard svg [fill="#4a3d7a"]{fill:var(--purple)}
+[data-theme="dark"] .previewCard svg [stroke="#4a5c28"]{stroke:var(--moss)}
+[data-theme="dark"] .previewCard svg [stroke="#2d3428"]{stroke:var(--ink-soft)}
 .signin{max-width:420px;margin:15vh auto 0;text-align:center;padding:0 1.2rem}
 .signin p{color:var(--ink-soft);font-size:.9rem}
 .signin a.btn{display:inline-block;text-decoration:none;margin-top:1.2rem;
@@ -205,10 +240,11 @@ export function renderEditor() {
   function renderEditor() {
     var pane = document.getElementById("editorPane");
     if (!selected) { pane.innerHTML = '<p class="calm">No entries yet.</p>'; return; }
+    var fieldsHtml, headingHtml;
     if (selected.kind === "site") {
       var s = state.site;
-      pane.innerHTML =
-        "<h2>Site</h2>" +
+      headingHtml = "<h2>Site</h2>";
+      fieldsHtml =
         field("Name", '<input type="text" id="f_name" value="' + esc(s.name) + '">') +
         field("Domain", '<input type="text" id="f_domain" value="' + esc(s.domain) + '">') +
         field("URL", '<input type="url" id="f_url" value="' + esc(s.url) + '">') +
@@ -226,9 +262,8 @@ export function renderEditor() {
       var glyphOptions = state.glyphs.map(function (g) {
         return '<option value="' + esc(g) + '"' + (g === t.glyph ? " selected" : "") + ">" + esc(g) + "</option>";
       }).join("");
-      pane.innerHTML =
-        "<h2>" + esc(t.label || t.key) + "</h2>" +
-        '<p class="savenote">key: ' + esc(t.key) + "</p>" +
+      headingHtml = "<h2>" + esc(t.label || t.key) + "</h2>" + '<p class="savenote">key: ' + esc(t.key) + "</p>";
+      fieldsHtml =
         field("Label", '<input type="text" id="f_label" value="' + esc(t.label) + '">') +
         field("Host", '<input type="text" id="f_host" value="' + esc(t.host) + '">') +
         field("Glyph", '<select id="f_glyph">' + glyphOptions + "</select>") +
@@ -243,7 +278,112 @@ export function renderEditor() {
         '<p class="savenote">Saving commits directly; the live site updates in a minute or two.</p>' +
         dropzoneHtml();
     }
+    pane.innerHTML =
+      headingHtml +
+      '<div class="editGrid">' +
+        '<div class="fieldsCol">' + fieldsHtml + "</div>" +
+        '<div class="previewCol">' +
+          '<div class="previewLabel">Preview — an approximation, not the live page</div>' +
+          '<div id="previewMount"></div>' +
+        "</div>" +
+      "</div>";
     wireEditor();
+    renderPreview();
+  }
+
+  // -----------------------------------------------------------------------
+  // Live preview — a client-side, faithful-as-possible rendering of the hub
+  // card (or, for the site singleton, the homepage eyebrow) that updates as
+  // the fields change, with no save required. astro dev isn't available in
+  // a Pages Function, so this is not the real page — it is a labelled
+  // approximation using the same tokens and glyph markup as the real site
+  // (src/pages/index.astro, src/layouts/Base.astro, src/components/Glyph.astro).
+  // Accuracy matters more than fidelity: the live/soon distinction (a live
+  // thread is a link; a non-live one shows "Soon" and is not clickable) is
+  // rendered exactly, and an unrecognised glyph name is shown as text rather
+  // than as an invented shape.
+  // -----------------------------------------------------------------------
+
+  // Copied verbatim from src/components/Glyph.astro's <g> markup per glyph
+  // name (colors hardcoded there too — T/P/M/I below). Keep in sync with
+  // that file the same way ALLOWED_GLYPHS in lib.js already has to be.
+  var GLYPH_MARKUP = {
+    spiral: '<g stroke="#cc785c" fill="none" stroke-linecap="round">' +
+      '<circle cx="32" cy="32" r="22" stroke-width="1.2" /><circle cx="32" cy="32" r="16" stroke-width="1.4" />' +
+      '<circle cx="32" cy="32" r="10" stroke-width="1.6" /><circle cx="32" cy="32" r="4" stroke-width="1.8" />' +
+      '<circle cx="32" cy="32" r="1.8" fill="#cc785c" stroke="none" /></g>',
+    book: '<g stroke="#4a5c28" fill="none" stroke-linecap="round" stroke-width="1.5">' +
+      '<path d="M 16 18 L 16 48 L 32 44 L 48 48 L 48 18 L 32 14 Z" /><line x1="32" y1="14" x2="32" y2="44" />' +
+      '<line x1="22" y1="24" x2="28" y2="22.5" /><line x1="22" y1="30" x2="28" y2="28.5" />' +
+      '<line x1="36" y1="22.5" x2="42" y2="24" /><line x1="36" y1="28.5" x2="42" y2="30" /></g>',
+    rays: '<g stroke="#4a3d7a" stroke-linecap="round" fill="none">' +
+      '<line x1="32" y1="32" x2="32" y2="14" stroke-width="1.8" /><line x1="32" y1="32" x2="44" y2="20" stroke-width="1.6" />' +
+      '<line x1="32" y1="32" x2="50" y2="32" stroke-width="1.6" /><line x1="32" y1="32" x2="44" y2="44" stroke-width="1.4" />' +
+      '<line x1="32" y1="32" x2="32" y2="50" stroke-width="1.4" /><line x1="32" y1="32" x2="20" y2="44" stroke-width="1.2" />' +
+      '<line x1="32" y1="32" x2="14" y2="32" stroke-width="1.2" /><line x1="32" y1="32" x2="20" y2="20" stroke-width="1.4" />' +
+      '<circle cx="32" cy="32" r="2.5" fill="#4a3d7a" stroke="none" /></g>',
+    nodes: '<g stroke="#4a3d7a" fill="none" stroke-linecap="round" stroke-width="1.4">' +
+      '<line x1="20" y1="20" x2="44" y2="28" /><line x1="44" y1="28" x2="24" y2="46" /><line x1="20" y1="20" x2="24" y2="46" />' +
+      '<circle cx="20" cy="20" r="4" fill="#cc785c" stroke="none" /><circle cx="44" cy="28" r="4" fill="#4a3d7a" stroke="none" />' +
+      '<circle cx="24" cy="46" r="4" fill="#4a5c28" stroke="none" /></g>',
+    waves: '<g fill="none" stroke-linecap="round">' +
+      '<path d="M 12 24 Q 32 38 52 24" stroke="#2d3428" stroke-width="1.8" />' +
+      '<path d="M 14 34 Q 32 46 50 34" stroke="#4a5c28" stroke-width="1.5" opacity="0.7" />' +
+      '<path d="M 16 42 Q 32 52 48 42" stroke="#cc785c" stroke-width="1.2" opacity="0.55" /></g>',
+    chart: '<g fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="14,44 26,32 36,38 50,18" stroke="#cc785c" stroke-width="1.8" />' +
+      '<line x1="14" y1="14" x2="14" y2="48" stroke="#2d3428" stroke-width="1.4" />' +
+      '<line x1="14" y1="48" x2="50" y2="48" stroke="#2d3428" stroke-width="1.4" />' +
+      '<circle cx="50" cy="18" r="2.4" fill="#cc785c" stroke="none" /></g>',
+    tones: '<g fill="none" stroke-linecap="round">' +
+      '<path d="M 14 20 L 50 20" stroke="#2d3428" stroke-width="1.4" />' +
+      '<path d="M 14 28 Q 32 32 50 37" stroke="#2d3428" stroke-width="1.4" opacity="0.7" />' +
+      '<path d="M 16 48 Q 31 44 44 17" stroke="#cc785c" stroke-width="2.4" /><circle cx="44" cy="17" r="2.4" fill="#cc785c" stroke="none" />' +
+      '<path d="M 14 38 Q 21 47 28 42 Q 34 38 36 31" stroke="#4a3d7a" stroke-width="1.4" />' +
+      '<path d="M 38 50 Q 45 51 50 53" stroke="#4a5c28" stroke-width="2" /></g>',
+    hearth: '<g fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M 16 30 L 32 16 L 48 30 L 48 48 L 16 48 Z" stroke="#2d3428" stroke-width="1.6" />' +
+      '<path d="M 28 48 L 28 36 L 36 36 L 36 48" stroke="#cc785c" stroke-width="1.4" /></g>',
+  };
+
+  function glyphSvg(name) {
+    var inner = GLYPH_MARKUP[name];
+    if (!inner) {
+      // Never invent a stand-in shape for a glyph we don't recognise —
+      // name it instead, so the preview stays honest about what it doesn't
+      // know rather than misleading with a wrong mark.
+      return '<span class="pglyph" style="display:inline-block;font-size:.65rem;color:var(--ink-faint)">[' + esc(name || "no glyph") + "]</span>";
+    }
+    return '<svg class="pglyph" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + inner + "</svg>";
+  }
+
+  function renderPreview() {
+    var mount = document.getElementById("previewMount");
+    if (!mount) return;
+    if (selected.kind === "site") {
+      var s = collectSite();
+      mount.innerHTML =
+        '<div class="previewEyebrowCard">' +
+          '<div class="pwordmark"><span class="light">Aina</span><span class="bold">Dara</span></div>' +
+          '<p class="peyebrow">' + esc(s.eyebrow) + "</p>" +
+        "</div>";
+    } else {
+      var t = collectThread(selected.key);
+      var tag = t.live ? "a" : "div";
+      var hrefAttr = t.live ? ' href="https://' + esc(t.host) + '" target="_blank" rel="noopener"' : "";
+      var ariaAttr = t.live ? "" : ' aria-disabled="true"';
+      mount.innerHTML =
+        "<" + tag + ' class="previewCard' + (t.live ? "" : " notlive") + '"' + hrefAttr + ariaAttr + ">" +
+          '<div class="phead">' +
+            glyphSvg(t.glyph) +
+            '<span class="pstatus' + (t.live ? " live" : "") + '">' + (t.live ? "Live" : "Soon") + "</span>" +
+          "</div>" +
+          '<h3 class="ptitle">' + esc(t.label || t.key) + "</h3>" +
+          '<p class="pdesc">' + esc(t.blurb) + "</p>" +
+          (t.version ? '<p class="pversion">' + esc(t.version) + "</p>" : "") +
+          '<span class="parrow">' + esc(t.host) + " →</span>" +
+        "</" + tag + ">";
+    }
   }
 
   function dropzoneHtml() {
@@ -252,8 +392,8 @@ export function renderEditor() {
   }
 
   function wireEditor() {
-    document.querySelectorAll("#editorPane input, #editorPane textarea, #editorPane select").forEach(function (el) {
-      el.addEventListener("input", function () { dirty = true; });
+    document.querySelectorAll(".fieldsCol input, .fieldsCol textarea, .fieldsCol select").forEach(function (el) {
+      el.addEventListener("input", function () { dirty = true; renderPreview(); });
     });
     var saveBtn = document.getElementById("saveBtn");
     if (saveBtn) saveBtn.addEventListener("click", save);
