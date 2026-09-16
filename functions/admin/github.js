@@ -50,7 +50,16 @@ export async function getFile(token, path) {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`GitHub read of ${path} failed: ${res.status}`);
   const data = await res.json();
-  const decoded = data.content ? atob(data.content.replace(/\n/g, "")) : "";
+  // atob() yields a BINARY string — one character per byte — so a multi-byte
+  // UTF-8 character comes back as several Latin-1 characters. Decoding those as
+  // text turns "—" into "â\u0080\u0094", and because the write path faithfully
+  // saves whatever it is given, every round-trip corrupts the content further.
+  // Go through the bytes explicitly.
+  const decoded = data.content
+    ? new TextDecoder("utf-8").decode(
+        Uint8Array.from(atob(data.content.replace(/\n/g, "")), (c) => c.charCodeAt(0)),
+      )
+    : "";
   return { sha: data.sha, content: decoded };
 }
 
