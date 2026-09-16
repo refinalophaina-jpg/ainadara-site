@@ -1,9 +1,0 @@
-{
-  "key": "agents",
-  "label": "Agents",
-  "host": "agents.ainadara.com",
-  "glyph": "nodes",
-  "live": false,
-  "order": 3,
-  "blurb": "Autonomous agents for research and workflow."
-}

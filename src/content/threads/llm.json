@@ -1,9 +1,0 @@
-{
-  "key": "llm",
-  "label": "LLM",
-  "host": "llm.ainadara.com",
-  "glyph": "rays",
-  "live": false,
-  "order": 2,
-  "blurb": "ClinTheory — LLM-assisted clinical reasoning."
-}
