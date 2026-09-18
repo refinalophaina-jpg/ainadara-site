@@ -8,7 +8,7 @@ interface Props {
 }
 const { title, description, path = "/" } = Astro.props;
 const SITE = (await getEntry("site", "site")).data;
-const pageTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — clinical pharmacy, in code`;
+const pageTitle = title ? `${title} — ${SITE.name}` : SITE.name;
 const desc = description ?? SITE.eyebrow;
 const canonical = new URL(path, SITE.url).toString();
 const ogImage = new URL(SITE.ogImage, SITE.url).toString();
@@ -166,7 +166,7 @@ const ogImage = new URL(SITE.ogImage, SITE.url).toString();
       .project-status.live { color: var(--moss); border-color: rgba(74,92,40,.3); }
       [data-theme="dark"] .project-status.live { border-color: rgba(154,173,104,.35); }
       .project-title { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 1.5rem; line-height: 1.2; margin-top: .25rem; }
-      .project-desc { font-size: .92rem; line-height: 1.55; color: var(--ink-soft); margin-top: auto; }
+      .project-desc { font-size: .92rem; line-height: 1.55; color: var(--ink-soft); margin-top: auto; white-space: pre-line; }
   /* Optional line naming what actually ships on a thread — quiet, tracked, and
      only rendered when site.ts sets a `version`. */
   .project-version {
