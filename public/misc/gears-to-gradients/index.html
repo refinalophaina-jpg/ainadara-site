@@ -425,13 +425,8 @@ canvas{border-color:var(--line)}
     </div>
     <ul class="toc" id="toc"></ul>
     <div class="controls" style="margin:0"><button class="btn sm" id="theme" aria-pressed="false">night mode</button></div>
-    <div class="sync" id="xfer">
-      <p class="eyebrow">carry progress to another device</p>
-      <div class="controls"><button class="btn sm primary" id="xfer-copy">copy a transfer link</button></div>
-      <div class="st" id="xfer-st">open the link on the other device; its progress and yours are merged. no account, no server.</div>
-    </div>
     <div class="sync" id="sync" hidden>
-      <p class="eyebrow">sync automatically</p>
+      <p class="eyebrow">sync across devices</p>
       <input id="sync-code" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="a private sync phrase" aria-label="sync phrase">
       <div class="controls"><button class="btn sm primary" id="sync-go">connect</button><button class="btn sm" id="sync-off" hidden>forget</button></div>
       <div class="st" id="sync-st">enter the same phrase on each device; progress, checks and notes follow it.</div>
@@ -1946,21 +1941,7 @@ function mergeDocs(loc,rem){if(!rem||rem.v!==1)return {doc:loc,changed:false};le
   ids.forEach(id=>{const a=(loc.notes||{})[id],b=(rem.notes||{})[id];if(!a){out.notes[id]=b;changed=true;}else if(!b){out.notes[id]=a;}else{const pick=(b._t||0)>(a._t||0)?b:a;out.notes[id]=pick;if(pick===b)changed=true;}});
   return {doc:out,changed};}
 function applyDoc(doc){const p=window.__g2gPush;window.__g2gPush=null;KEYS.forEach(k=>store(k,doc[k.slice(4)]||{}));window.__g2gPush=p;}
-const b64u={enc:b=>btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),dec:s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),ch=>ch.charCodeAt(0))};
-async function packDoc(doc){const raw=new TextEncoder().encode(JSON.stringify(doc));if(window.CompressionStream){const cs=new CompressionStream('deflate-raw');const w=cs.writable.getWriter();w.write(raw);w.close();const out=new Uint8Array(await new Response(cs.readable).arrayBuffer());return 'z'+b64u.enc(out);}return 'p'+b64u.enc(raw);}
-async function unpackDoc(s){const kind=s[0],body=b64u.dec(s.slice(1));let raw=body;if(kind==='z'){if(!window.DecompressionStream)throw new Error('this browser cannot read compressed links');const ds=new DecompressionStream('deflate-raw');const w=ds.writable.getWriter();w.write(body);w.close();raw=new Uint8Array(await new Response(ds.readable).arrayBuffer());}return JSON.parse(new TextDecoder().decode(raw));}
-(function(){
-  const btn=$('#xfer-copy'),st=$('#xfer-st');if(!btn)return;
-  const say=(m,cls)=>{st.textContent=m;st.className='st'+(cls?' '+cls:'');};
-  btn.addEventListener('click',async()=>{try{const s=await packDoc(localDoc());const url=location.origin+location.pathname+'#import='+s;
-      let ok=false;try{await navigator.clipboard.writeText(url);ok=true;}catch(e){}
-      if(ok)say('link copied · '+Math.round(url.length/1024*10)/10+' kb · paste it on the other device','ok');else{say('copy this link: '+url,'ok');}
-    }catch(e){say('could not build the link: '+e.message,'err');}});
-})();
-const importMatch=location.hash.match(/^#import=(.+)$/);
-if(importMatch){(async()=>{try{const rem=await unpackDoc(importMatch[1]);const {doc,changed}=mergeDocs(localDoc(),rem);if(changed)applyDoc(doc);history.replaceState(null,'',location.pathname+'#overview');location.reload();}catch(e){alert('That transfer link could not be read: '+e.message);history.replaceState(null,'',location.pathname+'#overview');}})();}
-
-/* ---- automatic sync (a Pages Function + KV on the site; hidden until the server has it) ---- */
+/* ---- sync across devices: a Pages Function + KV on the site, keyed by a private phrase ---- */
 (function(){
   const box=$('#sync');if(!box)return;
   if(!/^\/misc\//.test(location.pathname))return;
@@ -1979,8 +1960,7 @@ if(importMatch){(async()=>{try{const rem=await unpackDoc(importMatch[1]);const {
   go.addEventListener('click',()=>{const v=inp.value.trim();if(v.length<8){say('use at least 8 characters — a short sentence works well','err');return;}code=v;try{localStorage.setItem('g2g-sync-code',code);}catch(e){}ui();pull();});
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')go.click();});
   off.addEventListener('click',()=>{code=null;try{localStorage.removeItem('g2g-sync-code');}catch(e){}inp.value='';ui();say('disconnected — this browser keeps its own copy.');});
-  // probe: show the box only when the server has the function and a KV binding
-  fetch(API,{method:'GET',headers:{'x-sync-code':'probe-probe-probe'},cache:'no-store'}).then(r=>{if(r.status===503||r.status===404)return;box.hidden=false;window.__g2gPush=()=>{if(!code)return;clearTimeout(timer);timer=setTimeout(push,1200);};ui();if(code)pull();}).catch(()=>{});
+  box.hidden=false;window.__g2gPush=()=>{if(!code)return;clearTimeout(timer);timer=setTimeout(push,1200);};ui();if(code)pull();
 })();
 
 /* ---- day / night ---- */

@@ -44,11 +44,7 @@ export async function onRequest({ request, env }) {
     if (!doc || typeof doc !== "object" || doc.v !== 1) return json({ error: "unrecognised document" }, 400);
     const clean = { v: 1, updated: Date.now() };
     for (const k of ["seen", "quiz", "missed", "notes"]) clean[k] = (doc[k] && typeof doc[k] === "object") ? doc[k] : {};
-    // A year's TTL, refreshed on every write. Anyone can PUT under any phrase
-    // and there is no rate limiting, so without an expiry abandoned and
-    // junk-written keys would accumulate in the namespace forever. Someone
-    // actually using the course rewrites their key long before it lapses.
-    await kv.put(key, JSON.stringify(clean), { expirationTtl: 31536000 });
+    await kv.put(key, JSON.stringify(clean));
     return json({ ok: true, updated: clean.updated });
   }
 
