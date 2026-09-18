@@ -342,6 +342,13 @@ canvas{max-width:100%;height:auto;display:block;border-radius:4px;border:1px sol
 .knobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0}
 .knob{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);padding:10px 12px;font-size:14px}
 .knob b{display:block;font-family:var(--mono);font-size:12px;color:var(--signal);letter-spacing:.04em;margin-bottom:3px}
+/* ---------- sync ---------- */
+.sync{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;background:var(--bg-2)}
+.sync .eyebrow{margin-bottom:6px}
+.sync input{width:100%;font:inherit;font-family:var(--mono);font-size:12.5px;padding:6px 8px;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--bg);color:var(--ink);margin-bottom:6px}
+.sync .controls{margin:0 0 4px}
+.sync .st{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);line-height:1.45;text-transform:lowercase}
+.sync .st.ok{color:var(--good)} .sync .st.err{color:var(--bad)}
 /* ---------- practice ---------- */
 .prac{border:1px solid var(--line-2);border-left:3px solid var(--terra);border-radius:var(--radius);padding:14px 16px;max-width:70ch;background:var(--bg-2);margin-top:10px}
 .prq{font-family:var(--display);font-size:20px;line-height:1.35;font-variation-settings:"opsz" 24,"SOFT" 30;margin:4px 0 10px}
@@ -418,8 +425,19 @@ canvas{border-color:var(--line)}
     </div>
     <ul class="toc" id="toc"></ul>
     <div class="controls" style="margin:0"><button class="btn sm" id="theme" aria-pressed="false">night mode</button></div>
+    <div class="sync" id="xfer">
+      <p class="eyebrow">carry progress to another device</p>
+      <div class="controls"><button class="btn sm primary" id="xfer-copy">copy a transfer link</button></div>
+      <div class="st" id="xfer-st">open the link on the other device; its progress and yours are merged. no account, no server.</div>
+    </div>
+    <div class="sync" id="sync" hidden>
+      <p class="eyebrow">sync automatically</p>
+      <input id="sync-code" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="a private sync phrase" aria-label="sync phrase">
+      <div class="controls"><button class="btn sm primary" id="sync-go">connect</button><button class="btn sm" id="sync-off" hidden>forget</button></div>
+      <div class="st" id="sync-st">enter the same phrase on each device; progress, checks and notes follow it.</div>
+    </div>
     <div class="legend2"><span><i></i>not yet read</span><span><i class="f"></i>read</span><span><i class="g"></i>check answered correctly</span></div>
-    <div class="foot2">← → arrow keys move between chapters.<br>notes and scores stay in this browser.</div>
+    <div class="foot2">← → arrow keys move between chapters.<br>notes and scores stay in this browser unless you connect sync.</div>
   </aside>
   <div class="main">
     <div class="topbar"><button class="btn sm" id="menu">chapters</button><a class="brandm" href="/misc/" style="text-decoration:none;color:inherit">gears <em>→</em> gradients</a><span class="pos" id="pos">overview</span><button class="btn sm" id="theme2">night</button></div>
@@ -1395,7 +1413,7 @@ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: redu
 const fmt=(n,d=2)=>Number(n).toFixed(d);
 const NS='http://www.w3.org/2000/svg';
 function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
-function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));if(k==='g2g-quiz'&&window.__g2gPush)window.__g2gPush();}catch(e){return null;}}
 
 /* ================= MASTER TIMELINE ================= */
 (function(){
@@ -1765,7 +1783,7 @@ function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(
 (function(){
 "use strict";
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-function store(k,v){try{if(v===undefined){const r=localStorage.getItem(k);if(r===null)return null;try{return JSON.parse(r);}catch(e){return r;}}localStorage.setItem(k,k==='ainadara-theme'?String(v):JSON.stringify(v));}catch(e){return null;}}
+function store(k,v){try{if(v===undefined){const r=localStorage.getItem(k);if(r===null)return null;try{return JSON.parse(r);}catch(e){return r;}}localStorage.setItem(k,k==='ainadara-theme'?String(v):JSON.stringify(v));if(/^g2g-(seen|quiz|missed|notes)$/.test(k)&&window.__g2gPush)window.__g2gPush();}catch(e){return null;}}
 const META={
  ch1:{time:'4 min',obj:['Explain why punched cards, not gears, are the loom\'s contribution to computing','Describe the store / mill split in the Analytical Engine and name its modern equivalents','Compute a polynomial table using only addition, the way the Difference Engine did'],on:[],
   recap:'A machine can follow a sequence of instructions it does not understand — and once the instructions live on a replaceable object, the same machine can do different jobs.',
@@ -1856,7 +1874,7 @@ chs.forEach((c,i)=>{
   </div><div class="saved" id="sv-${c.id}"></div></div>`;
   q.after(end);
   $$('.cards button',end).forEach(b=>b.addEventListener('click',()=>{b.previousElementSibling.hidden=false;b.remove();}));
-  const n=notesAll[c.id]||{};$$('textarea',end).forEach(t=>{t.value=n[t.dataset.b]||'';let tm;t.addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(()=>{notesAll[c.id]=notesAll[c.id]||{};notesAll[c.id][t.dataset.b]=t.value;store('g2g-notes',notesAll);$('#sv-'+c.id).textContent='saved · '+new Date().toLocaleTimeString();},400);});});
+  const n=notesAll[c.id]||{};$$('textarea',end).forEach(t=>{t.value=n[t.dataset.b]||'';let tm;t.addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(()=>{notesAll[c.id]=notesAll[c.id]||{};notesAll[c.id][t.dataset.b]=t.value;notesAll[c.id]._t=Date.now();store('g2g-notes',notesAll);$('#sv-'+c.id).textContent='saved · '+new Date().toLocaleTimeString();},400);});});
   // pager
   const pg=document.createElement('div');pg.className='pager';
   const prevId=i>0?chs[i-1].id:'overview',nextId=i<chs.length-1?chs[i+1].id:'review';
@@ -1918,12 +1936,59 @@ prStat();
 $('#copy-notes').addEventListener('click',()=>{const parts=['# gears → gradients · my notes',''];chs.forEach((c,i)=>{const n=notesAll[c.id];if(!n||!Object.values(n).some(v=>v&&v.trim()))return;parts.push(`## ${i+1}. ${titles[c.id]}`,'');[['clicked','what clicked'],['confused','what confused me'],['connections','connections'],['questions','questions for next session']].forEach(([k,l])=>{if(n[k]&&n[k].trim())parts.push(`**${l}**`,'',n[k].trim(),'');});});out(parts.length>2?parts.join('\n'):'(no notes written yet)','notes copied as markdown');});
 function out(text,msg){const ta=$('#export-area');ta.value=text;ta.select();let ok=false;try{if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>{$('#copy-msg').textContent=msg;});else{ok=document.execCommand('copy');$('#copy-msg').textContent=ok?msg:'select the text below and copy';}}catch(e){$('#copy-msg').textContent='select the text below and copy';}}
 
+
+/* ---- carry progress between devices: a transfer link (no server) ---- */
+const KEYS=['g2g-seen','g2g-quiz','g2g-missed','g2g-notes'];
+const localDoc=()=>{const d={v:1,updated:Date.now()};KEYS.forEach(k=>{d[k.slice(4)]=store(k)||{};});return d;};
+function mergeDocs(loc,rem){if(!rem||rem.v!==1)return {doc:loc,changed:false};let changed=false;const out={v:1,updated:Date.now(),seen:{},quiz:{},missed:{},notes:{}};
+  for(const k of ['seen','missed','quiz']){Object.assign(out[k],rem[k]||{},loc[k]||{});if(Object.keys(out[k]).length!==Object.keys(loc[k]||{}).length)changed=true;}
+  const ids=new Set([...Object.keys(rem.notes||{}),...Object.keys(loc.notes||{})]);
+  ids.forEach(id=>{const a=(loc.notes||{})[id],b=(rem.notes||{})[id];if(!a){out.notes[id]=b;changed=true;}else if(!b){out.notes[id]=a;}else{const pick=(b._t||0)>(a._t||0)?b:a;out.notes[id]=pick;if(pick===b)changed=true;}});
+  return {doc:out,changed};}
+function applyDoc(doc){const p=window.__g2gPush;window.__g2gPush=null;KEYS.forEach(k=>store(k,doc[k.slice(4)]||{}));window.__g2gPush=p;}
+const b64u={enc:b=>btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),dec:s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),ch=>ch.charCodeAt(0))};
+async function packDoc(doc){const raw=new TextEncoder().encode(JSON.stringify(doc));if(window.CompressionStream){const cs=new CompressionStream('deflate-raw');const w=cs.writable.getWriter();w.write(raw);w.close();const out=new Uint8Array(await new Response(cs.readable).arrayBuffer());return 'z'+b64u.enc(out);}return 'p'+b64u.enc(raw);}
+async function unpackDoc(s){const kind=s[0],body=b64u.dec(s.slice(1));let raw=body;if(kind==='z'){if(!window.DecompressionStream)throw new Error('this browser cannot read compressed links');const ds=new DecompressionStream('deflate-raw');const w=ds.writable.getWriter();w.write(body);w.close();raw=new Uint8Array(await new Response(ds.readable).arrayBuffer());}return JSON.parse(new TextDecoder().decode(raw));}
+(function(){
+  const btn=$('#xfer-copy'),st=$('#xfer-st');if(!btn)return;
+  const say=(m,cls)=>{st.textContent=m;st.className='st'+(cls?' '+cls:'');};
+  btn.addEventListener('click',async()=>{try{const s=await packDoc(localDoc());const url=location.origin+location.pathname+'#import='+s;
+      let ok=false;try{await navigator.clipboard.writeText(url);ok=true;}catch(e){}
+      if(ok)say('link copied · '+Math.round(url.length/1024*10)/10+' kb · paste it on the other device','ok');else{say('copy this link: '+url,'ok');}
+    }catch(e){say('could not build the link: '+e.message,'err');}});
+})();
+const importMatch=location.hash.match(/^#import=(.+)$/);
+if(importMatch){(async()=>{try{const rem=await unpackDoc(importMatch[1]);const {doc,changed}=mergeDocs(localDoc(),rem);if(changed)applyDoc(doc);history.replaceState(null,'',location.pathname+'#overview');location.reload();}catch(e){alert('That transfer link could not be read: '+e.message);history.replaceState(null,'',location.pathname+'#overview');}})();}
+
+/* ---- automatic sync (a Pages Function + KV on the site; hidden until the server has it) ---- */
+(function(){
+  const box=$('#sync');if(!box)return;
+  if(!/^\/misc\//.test(location.pathname))return;
+  const API=location.pathname.replace(/\/$/,'')+'/api/progress';
+  const inp=$('#sync-code'),go=$('#sync-go'),off=$('#sync-off'),st=$('#sync-st');
+  let code=null;try{code=localStorage.getItem('g2g-sync-code');}catch(e){}
+  let timer=null,busy=false;
+  const say=(m,cls)=>{st.textContent=m;st.className='st'+(cls?' '+cls:'');};
+  async function req(method,body){const r=await fetch(API,{method,headers:{'x-sync-code':code,'content-type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+    if(r.status===503)throw new Error('sync is not set up on the server yet');if(!r.ok)throw new Error('server said '+r.status);return method==='GET'?r.json():null;}
+  async function pull(){if(!code)return;busy=true;say('syncing…');try{const rem=await req('GET');const {doc,changed}=mergeDocs(localDoc(),rem);
+      if(changed){applyDoc(doc);await req('PUT',doc);location.reload();return;}
+      if(!rem)await req('PUT',doc);say('synced · '+new Date().toLocaleTimeString(),'ok');}catch(e){say(e.message,'err');}finally{busy=false;}}
+  async function push(){if(!code||busy)return;busy=true;try{await req('PUT',localDoc());say('synced · '+new Date().toLocaleTimeString(),'ok');}catch(e){say(e.message,'err');}finally{busy=false;}}
+  function ui(){if(code){inp.value=code;inp.disabled=true;go.hidden=true;off.hidden=false;}else{inp.disabled=false;go.hidden=false;off.hidden=true;}}
+  go.addEventListener('click',()=>{const v=inp.value.trim();if(v.length<8){say('use at least 8 characters — a short sentence works well','err');return;}code=v;try{localStorage.setItem('g2g-sync-code',code);}catch(e){}ui();pull();});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')go.click();});
+  off.addEventListener('click',()=>{code=null;try{localStorage.removeItem('g2g-sync-code');}catch(e){}inp.value='';ui();say('disconnected — this browser keeps its own copy.');});
+  // probe: show the box only when the server has the function and a KV binding
+  fetch(API,{method:'GET',headers:{'x-sync-code':'probe-probe-probe'},cache:'no-store'}).then(r=>{if(r.status===503||r.status===404)return;box.hidden=false;window.__g2gPush=()=>{if(!code)return;clearTimeout(timer);timer=setTimeout(push,1200);};ui();if(code)pull();}).catch(()=>{});
+})();
+
 /* ---- day / night ---- */
 const root=document.documentElement;
-function applyTheme(t,save){root.setAttribute('data-theme',t);if(save)store('ainadara-theme',t);const dark=t==='dark';
+function applyTheme(t,save){root.setAttribute('data-theme',t);if(save)store('g2g-theme',t);const dark=t==='dark';
   const b=$('#theme'),b2=$('#theme2');if(b){b.textContent=dark?'day mode':'night mode';b.setAttribute('aria-pressed',dark);}if(b2)b2.textContent=dark?'day':'night';
   document.dispatchEvent(new CustomEvent('g2gtheme'));}
-const savedTheme=store('ainadara-theme')||root.getAttribute('data-theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+const savedTheme=store('g2g-theme')||root.getAttribute('data-theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 applyTheme(savedTheme,false);
 const flip=()=>applyTheme(root.getAttribute('data-theme')==='dark'?'light':'dark',true);
 $('#theme').addEventListener('click',flip);$('#theme2').addEventListener('click',flip);

@@ -4,7 +4,7 @@
   "host": "pharmacy.ainadara.com",
   "glyph": "spiral",
   "live": true,
-  "order": 0,
-  "blurb": "Therapeutic drug monitoring.  — AUC-guided vancomycin dosing, Bayesian precision fitting, and the pharmacokinetics behind them.",
+  "order": 2,
+  "blurb": "Therapeutic drug monitoring.  \n— AUC-guided vancomycin dosing utilizing Bayesian precision fitting",
   "version": "Vancomycin TDM v3.0 "
 }
