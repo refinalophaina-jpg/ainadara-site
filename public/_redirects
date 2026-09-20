@@ -1,0 +1,9 @@
+# Cloudflare Pages redirects. Docs: https://developers.cloudflare.com/pages/configuration/redirects/
+# Static assets take precedence over these rules, so a redirected path must have no file
+# remaining under public/ — public/pharmacy/alaris/ was removed in the same commit.
+
+# The infusion-pump training simulator moved to the pharmacy subdomain, alongside the
+# vancomycin tooling. The published link https://ainadara.com/pharmacy/alaris/ must keep
+# working, so both the trailing-slash and bare forms are redirected permanently.
+/pharmacy/alaris      https://pharmacy.ainadara.com/alaris/         301
+/pharmacy/alaris/*    https://pharmacy.ainadara.com/alaris/:splat   301

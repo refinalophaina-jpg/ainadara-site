@@ -1,3 +1,0 @@
-id,area,name,concentration,amountUnit,doseUnit,hardMin,softMin,softMax,hardMax
-example-fluid,Adult medical / surgical,Training fluid,1,mL,mL/h,1,25,200,500
-example-weighted,Adult critical care,Training vasopressor,16,mcg,mcg/kg/min,0.01,0.02,0.2,0.5
