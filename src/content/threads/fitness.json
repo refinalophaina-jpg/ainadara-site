@@ -1,0 +1,9 @@
+{
+  "key": "fitness",
+  "label": "Fitness",
+  "host": "fitness.ainadara.com",
+  "glyph": "rays",
+  "live": true,
+  "order": 3,
+  "blurb": "A personal fitness & health hub — train, log, fuel, and care, grounded in clinical evidence."
+}
