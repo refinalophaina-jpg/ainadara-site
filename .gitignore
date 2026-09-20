@@ -6,3 +6,10 @@ dist/
 .env
 .env.*
 !.env.example
+
+# The Alaris simulator's ?library=workplace preview reads this file from public/.
+# public/ publishes verbatim to a public website, and the studio's publish stages
+# the whole directory -- so a real institutional drug library left here would be
+# committed and served to anyone. The demo library (demo-library.json) is
+# fictional and tracked; the real one must never be either.
+public/pharmacy/alaris/local-library.json
