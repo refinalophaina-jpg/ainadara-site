@@ -6,7 +6,7 @@ pages_build_output_dir = "./dist"
 [env.production.vars]
 ACCESS_TEAM_DOMAIN = "solitary-heart-c64d"
 ACCESS_AUD = "af01377bac5fd482b1837b2220dabfe0392ba6a0d69375baeca13760a8b22cc4"
-LIBRARY_DISABLED = "true"
+LIBRARY_DISABLED = "false"
 GITHUB_CLIENT_ID = "Ov23lia9sT02PsGxZamX"
 
 [[env.production.kv_namespaces]]
