@@ -14,7 +14,7 @@
 //   ACCESS_AUD          the Application Audience tag of the Access application (64 hex chars)
 //   ALARIS_LIBRARY      KV namespace binding holding the payload under key "payload"
 // Optional:
-//   LIBRARY_DISABLED    set to "true" to hard-disable the endpoint without a deploy
+//   LIBRARY_DISABLED    any value except unset/empty/false/0/no/off hard-disables the endpoint
 import { verifyAccessJwt, readToken, Refused } from './access-jwt.mjs';
 
 // Never leak the internal reason to the client; it is logged for the operator instead.
@@ -47,7 +47,21 @@ async function fetchCerts(url) {
 export async function onRequest({ request, env }) {
   if (request.method !== 'GET' && request.method !== 'HEAD') return deny(405, 'Method not allowed.');
   // 1. Kill switch first, so it works even if everything else is misconfigured.
-  if (String(env.LIBRARY_DISABLED).toLowerCase() === 'true') {
+  //
+  // Polarity is deliberate: ANY value other than unset/empty or an explicit off-word disables.
+  // The previous form matched exactly 'true', which meant an operator disabling under pressure
+  // with '1', 'yes', 'on', or a pasted 'true ' with trailing whitespace left the endpoint fully
+  // serving while the dashboard looked switched off. A break-glass control must fail toward
+  // stopping distribution, not toward continuing it.
+  //
+  // The `?? ''` is load-bearing: without it an UNSET variable stringifies to 'undefined', which
+  // under this rule would disable the endpoint permanently. The off-list keeps 'false'/'0'/'no'/
+  // 'off' usable as enabled values, so the deployed LIBRARY_DISABLED="false" is unaffected.
+  const kill = String(env.LIBRARY_DISABLED ?? '').trim().toLowerCase();
+  if (kill && !['false', '0', 'no', 'off'].includes(kill)) {
+    // Do not echo a malformed environment value into logs; it may have been pasted from a
+    // sensitive source. The refusal reason is sufficient for incident diagnosis.
+    console.log('alaris-library refused: kill-switch');
     return deny(503, 'The institutional library is currently disabled.');
   }
 
