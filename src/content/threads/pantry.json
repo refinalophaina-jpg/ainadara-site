@@ -1,0 +1,10 @@
+{
+  "key": "pantry",
+  "label": "Pantry",
+  "host": "pantry.ainadara.com",
+  "glyph": "hearth",
+  "live": true,
+  "order": 4,
+  "blurb": "Household kitchen — pantry inventory, recipes from what you have, three-day prep, and a shopping list that survives a dead spot.",
+  "version": "v0.10.0"
+}
