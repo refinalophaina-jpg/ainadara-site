@@ -25,7 +25,7 @@ export function setupTransition(state, action) {
   if(action.type==='tick') {
     if(!state.busy || !Number.isFinite(action.seconds) || action.seconds<=0)return state;
     const priming=Math.min(1,state.priming+action.seconds/4);
-    return {...state,priming,busy:priming<1,step:priming===1?state.step+1:state.step,feedback:priming===1?'The schematic line is filled. Close the clamp, then inspect the line.':state.feedback};
+    return {...state,priming,busy:priming<1,step:priming===1?state.step+1:state.step,feedback:priming===1?'The visual line is filled. Close the clamp, then inspect the line.':state.feedback};
   }
   if(action.type!=='act')return state;
   const expected=SETUP_STEPS[state.step];

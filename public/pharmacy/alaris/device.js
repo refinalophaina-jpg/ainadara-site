@@ -1,6 +1,6 @@
-import { UNITS, evaluate, softRange, limitText } from './engine.js';
-import { displayRate, displayModuleRate, capabilityRows, DEVICE_CAPABILITY_MODEL } from './device-profile.js';
-import { createAudio } from './audio.js';
+import { UNITS, evaluate, softRange, limitText } from './engine.js?v=0.6';
+import { displayRate, displayModuleRate, capabilityRows, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.6';
+import { createAudio } from './audio.js?v=0.6';
 
 // The device is another view of the SAME engine, library and attempt as the worksheet.
 // Reference: BD 8015 v12.1 manual, pp. 23–24, 40, 47, 53, 57, 91–96, 325.
@@ -306,7 +306,7 @@ export function mountDevice(host, api) {
       action(1,'EXIT',()=>go('options'));
       footer=`>${DEVICE_CAPABILITY_MODEL.institutionVerified?'Institution verified':'No — reference defaults, not this institution\u2019s configuration'} · model ${DEVICE_CAPABILITY_MODEL.modelVersion} · separate from the drug library`;
     }else if(view==='software'){
-      title='SOFTWARE VERSIONS';row('Simulator','AinaDara prototype 0.5');row('Reference workflow','8015 user manual · v12.1');row('Your pump firmware','Not verified');row('No device connection','No firmware is installed here');
+      title='SOFTWARE VERSIONS';row('Simulator','AinaDara prototype 0.6');row('Reference workflow','8015 user manual · v12.1');row('Your pump firmware','Not verified');row('No device connection','No firmware is installed here');
       action(1,'EXIT',()=>go('overview'));footer='>Training implementation · not manufacturer software';
     }else if(view==='audio'){
       title='AUDIO';

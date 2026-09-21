@@ -1,8 +1,8 @@
-import { UNITS, evaluate, validateLibrary, parseCSV, initialState, transition, limitText, softRange, entryLabel, DEVICE_CAPABILITY_MODEL } from './engine.js';
-import { mountDevice } from './device.js';
-import { interpretWorkplaceCSV, isWorkplaceCSV } from './workplace-library.js';
-import { initialSetup, setupTransition, setupReady, SETUP_STEPS } from './setup-engine.js';
-import { mountSetup } from './setup.js';
+import { UNITS, evaluate, validateLibrary, parseCSV, initialState, transition, limitText, softRange, entryLabel, DEVICE_CAPABILITY_MODEL } from './engine.js?v=0.6';
+import { mountDevice } from './device.js?v=0.6';
+import { interpretWorkplaceCSV, isWorkplaceCSV } from './workplace-library.js?v=0.6';
+import { initialSetup, setupTransition, setupReady, SETUP_STEPS } from './setup-engine.js?v=0.6';
+import { mountSetup } from './setup.js?v=0.6';
 
 const $ = id => document.getElementById(id);
 const scenarios = {
@@ -308,7 +308,7 @@ function wireEvents() {
   $('download-attempt').addEventListener('click',() => {
     storeActiveChannel();
     const channels=CHANNEL_IDS.slice(0,moduleCount).map(id=>{const session=channelSessions[id],s=session.state;return {channel:id,status:s.status,program:s.program||session.program,entry:s.entry,profileConfirmed:s.profileConfirmed,orderCheckAcknowledged:s.acknowledged,deliveredMl:s.delivered,simulatedSeconds:s.elapsed,events:s.events};});
-    const report = { application:'AinaDara infusion practice', prototypeVersion:'0.5', trainingOnly:true, exportedAt:new Date().toISOString(), mode, scenario:mode === 'guided' ? $('scenario').value : null, moduleCount, activeChannel, channels, setup:{enabled:setupEnabled,complete:setupReady(setupState),stepsComplete:setupState.step,events:setupState.events,container:'generic prepared primary bag',physicalTechniqueAssessed:false}, library:{name:library.name,version:library.version,effectiveDate:library.effectiveDate,source:imported ? 'local import' : 'fictional demo',provenance:library.source||null}, status:state.status, program:state.program, entry:state.entry, deviceCapabilityModel:{id:DEVICE_CAPABILITY_MODEL.id,version:DEVICE_CAPABILITY_MODEL.modelVersion,institutionVerified:DEVICE_CAPABILITY_MODEL.institutionVerified}, assessmentMode:assessmentMode(), profileConfirmed:state.profileConfirmed, orderCheckAcknowledged:state.acknowledged, deliveredMl:state.delivered, simulatedSeconds:state.elapsed, checkpoints:checkpoints(), events:state.events, reflection:$('reflection').value };
+    const report = { application:'AinaDara infusion practice', prototypeVersion:'0.6', trainingOnly:true, exportedAt:new Date().toISOString(), mode, scenario:mode === 'guided' ? $('scenario').value : null, moduleCount, activeChannel, channels, setup:{enabled:setupEnabled,complete:setupReady(setupState),stepsComplete:setupState.step,events:setupState.events,container:'generic prepared primary bag',physicalTechniqueAssessed:false}, library:{name:library.name,version:library.version,effectiveDate:library.effectiveDate,source:imported ? 'local import' : 'fictional demo',provenance:library.source||null}, status:state.status, program:state.program, entry:state.entry, deviceCapabilityModel:{id:DEVICE_CAPABILITY_MODEL.id,version:DEVICE_CAPABILITY_MODEL.modelVersion,institutionVerified:DEVICE_CAPABILITY_MODEL.institutionVerified}, assessmentMode:assessmentMode(), profileConfirmed:state.profileConfirmed, orderCheckAcknowledged:state.acknowledged, deliveredMl:state.delivered, simulatedSeconds:state.elapsed, checkpoints:checkpoints(), events:state.events, reflection:$('reflection').value };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})); const a = node('a'); a.href = url; a.download = 'ainadara-infusion-attempt.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url),1000);
   });
   for(const id of ['library-search','library-profile','library-support'])$(id).addEventListener('input',()=>{libraryPage=0;renderLibrary();});

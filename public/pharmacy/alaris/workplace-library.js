@@ -1,5 +1,5 @@
-import { csvRecords } from './csv.js';
-import { UNITS, number, validateLibrary } from './engine.js';
+import { csvRecords } from './csv.js?v=0.6';
+import { UNITS, number, validateLibrary } from './engine.js?v=0.6';
 
 const canonical=s=>({'unit':'units','milliunit':'milliunits','g':'gram'}[s]||s);
 const MASS={gram:1e9,mg:1e6,mcg:1e3,nanogram:1};
