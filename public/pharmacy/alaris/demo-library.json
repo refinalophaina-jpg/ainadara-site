@@ -1,0 +1,12 @@
+{
+  "name": "AinaDara fictional training library",
+  "version": "demo-0.1",
+  "effectiveDate": "2026-09-19",
+  "entries": [
+    {"id":"fluid-adult","area":"Adult medical / surgical","name":"Training fluid","concentration":1,"amountUnit":"mL","doseUnit":"mL/h","hardMin":1,"softMin":25,"softMax":200,"hardMax":500},
+    {"id":"analgesic-adult","area":"Adult medical / surgical","name":"Training analgesic","concentration":10,"amountUnit":"mcg","doseUnit":"mcg/h","hardMin":1,"softMin":10,"softMax":50,"hardMax":100},
+    {"id":"pressor-icu","area":"Adult critical care","name":"Training vasopressor","concentration":16,"amountUnit":"mcg","doseUnit":"mcg/kg/min","hardMin":0.01,"softMin":0.02,"softMax":0.2,"hardMax":0.5},
+    {"id":"anticoagulant-icu","area":"Adult critical care","name":"Training anticoagulant","concentration":100,"amountUnit":"units","doseUnit":"units/kg/h","hardMin":1,"softMin":5,"softMax":20,"hardMax":30},
+    {"id":"fluid-peds","area":"Pediatrics","name":"Training fluid","concentration":1,"amountUnit":"mL","doseUnit":"mL/h","hardMin":1,"softMin":5,"softMax":40,"hardMax":80}
+  ]
+}
