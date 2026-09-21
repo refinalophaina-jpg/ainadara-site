@@ -7,7 +7,7 @@
 
 const PREF_KEY = 'alaris-audio';
 // Fallback placement when a caller does not provide the assembly-aware pan. The device view
-// supplies exact left/right positions for each 2/3/4-module layout.
+// supplies exact left/right positions for each 1/2/3/4-module layout.
 const CHANNEL_PAN = { A:-0.68, B:-0.24, C:0.26, D:0.68 };
 const SOUNDS = {
   // Each step may contain harmonically related layers. Conservative gain keeps repeated

@@ -1,8 +1,8 @@
-import { UNITS, evaluate, validateLibrary, parseCSV, initialState, transition, limitText, softRange, entryLabel, DEVICE_CAPABILITY_MODEL } from './engine.js?v=0.6';
-import { mountDevice } from './device.js?v=0.6';
-import { interpretWorkplaceCSV, isWorkplaceCSV } from './workplace-library.js?v=0.6';
-import { initialSetup, setupTransition, setupReady, SETUP_STEPS } from './setup-engine.js?v=0.6';
-import { mountSetup } from './setup.js?v=0.6';
+import { UNITS, evaluate, validateLibrary, parseCSV, initialState, transition, limitText, softRange, entryLabel, DEVICE_CAPABILITY_MODEL } from './engine.js?v=0.7';
+import { mountDevice } from './device.js?v=0.7';
+import { interpretWorkplaceCSV, isWorkplaceCSV } from './workplace-library.js?v=0.7';
+import { initialSetup, setupTransition, setupReady, SETUP_STEPS } from './setup-engine.js?v=0.7';
+import { mountSetup } from './setup.js?v=0.7';
 
 const $ = id => document.getElementById(id);
 const scenarios = {
@@ -62,7 +62,7 @@ function selectChannel(id){
 }
 function setModuleCount(value){
   const next=Number(value);
-  if(![2,3,4].includes(next)||next===moduleCount)return true;
+  if(![1,2,3,4].includes(next)||next===moduleCount)return true;
   storeActiveChannel();
   const removed=CHANNEL_IDS.slice(next,moduleCount);
   const inUse=removed.some(id=>{const session=channelSessions[id];return session.state.events.length||session.state.status!=='editing'||session.program.dose||session.program.vtbi||session.program.weight;});
@@ -75,7 +75,7 @@ function dispatch(action) {
   if (['start','resume'].includes(action.type)&&setupEnabled&&!setupReady(setupState)) { text('setup-summary','Complete the physical setup before starting delivery.'); return; }
   state = transition(state,action);channelSessions[activeChannel].state=state;render();
 }
-function mayReset() { storeActiveChannel();return !(CHANNEL_IDS.some(id=>channelSessions[id].state.events.length) || setupState.events.length || $('reflection').value) || confirm('Reset all three channels? Their action histories and this reflection will be cleared. Download the debrief first if you want to keep it.'); }
+function mayReset() { storeActiveChannel();return !(CHANNEL_IDS.some(id=>channelSessions[id].state.events.length) || setupState.events.length || $('reflection').value) || confirm('Reset all channels? Their action histories and this reflection will be cleared. Download the debrief first if you want to keep it.'); }
 function clearAttempt(preserveSetup=false) {
   channelSessions=Object.fromEntries(CHANNEL_IDS.map(id=>[id,blankChannel()]));activeChannel='A';state=channelSessions.A.state;renderedEvents=-1;
   if(!preserveSetup){setupState=initialSetup();if(setupEnabled)setPresentation('setup');}
@@ -308,7 +308,7 @@ function wireEvents() {
   $('download-attempt').addEventListener('click',() => {
     storeActiveChannel();
     const channels=CHANNEL_IDS.slice(0,moduleCount).map(id=>{const session=channelSessions[id],s=session.state;return {channel:id,status:s.status,program:s.program||session.program,entry:s.entry,profileConfirmed:s.profileConfirmed,orderCheckAcknowledged:s.acknowledged,deliveredMl:s.delivered,simulatedSeconds:s.elapsed,events:s.events};});
-    const report = { application:'AinaDara infusion practice', prototypeVersion:'0.6', trainingOnly:true, exportedAt:new Date().toISOString(), mode, scenario:mode === 'guided' ? $('scenario').value : null, moduleCount, activeChannel, channels, setup:{enabled:setupEnabled,complete:setupReady(setupState),stepsComplete:setupState.step,events:setupState.events,container:'generic prepared primary bag',physicalTechniqueAssessed:false}, library:{name:library.name,version:library.version,effectiveDate:library.effectiveDate,source:imported ? 'local import' : 'fictional demo',provenance:library.source||null}, status:state.status, program:state.program, entry:state.entry, deviceCapabilityModel:{id:DEVICE_CAPABILITY_MODEL.id,version:DEVICE_CAPABILITY_MODEL.modelVersion,institutionVerified:DEVICE_CAPABILITY_MODEL.institutionVerified}, assessmentMode:assessmentMode(), profileConfirmed:state.profileConfirmed, orderCheckAcknowledged:state.acknowledged, deliveredMl:state.delivered, simulatedSeconds:state.elapsed, checkpoints:checkpoints(), events:state.events, reflection:$('reflection').value };
+    const report = { application:'AinaDara infusion practice', prototypeVersion:'0.7', trainingOnly:true, exportedAt:new Date().toISOString(), mode, scenario:mode === 'guided' ? $('scenario').value : null, moduleCount, activeChannel, channels, setup:{enabled:setupEnabled,complete:setupReady(setupState),stepsComplete:setupState.step,events:setupState.events,container:'generic prepared primary bag',physicalTechniqueAssessed:false}, library:{name:library.name,version:library.version,effectiveDate:library.effectiveDate,source:imported ? 'local import' : 'fictional demo',provenance:library.source||null}, status:state.status, program:state.program, entry:state.entry, deviceCapabilityModel:{id:DEVICE_CAPABILITY_MODEL.id,version:DEVICE_CAPABILITY_MODEL.modelVersion,institutionVerified:DEVICE_CAPABILITY_MODEL.institutionVerified}, assessmentMode:assessmentMode(), profileConfirmed:state.profileConfirmed, orderCheckAcknowledged:state.acknowledged, deliveredMl:state.delivered, simulatedSeconds:state.elapsed, checkpoints:checkpoints(), events:state.events, reflection:$('reflection').value };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})); const a = node('a'); a.href = url; a.download = 'ainadara-infusion-attempt.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url),1000);
   });
   for(const id of ['library-search','library-profile','library-support'])$(id).addEventListener('input',()=>{libraryPage=0;renderLibrary();});

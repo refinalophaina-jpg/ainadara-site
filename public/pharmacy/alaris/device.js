@@ -1,6 +1,6 @@
-import { UNITS, evaluate, softRange, limitText } from './engine.js?v=0.6';
-import { displayRate, displayModuleRate, capabilityRows, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.6';
-import { createAudio } from './audio.js?v=0.6';
+import { UNITS, evaluate, softRange, limitText } from './engine.js?v=0.7';
+import { displayRate, displayModuleRate, capabilityRows, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.7';
+import { createAudio } from './audio.js?v=0.7';
 
 // The device is another view of the SAME engine, library and attempt as the worksheet.
 // Reference: BD 8015 v12.1 manual, pp. 23–24, 40, 47, 53, 57, 91–96, 325.
@@ -47,8 +47,8 @@ export function mountDevice(host, api) {
         </section>
         <div id="module-bank-right" class="module-bank module-bank-right" aria-label="Right pump modules">${['C','D'].map(moduleMarkup).join('')}</div>
       </div>
-      <div class="device-simulation-tools"><span id="device-clock">Channel A · simulated time 00:00:00</span><span id="device-response" class="device-response" aria-live="polite"></span><label class="module-config">Attached modules <select id="device-module-count" aria-label="Attached pump modules"><option value="2">2 · one each side</option><option value="3" selected>3 · two left, one right</option><option value="4">4 · two each side</option></select></label><button id="device-startup" class="secondary">Rehearse startup</button><button id="device-advance" class="secondary">Advance 1 minute</button><button id="device-alarm" class="secondary">Introduce occlusion</button><button id="device-audio" class="secondary" aria-pressed="false">Sound off</button></div>
-      <p class="device-caption">Original generic modular fascia for simulation. Choose two modules (one per side), three (two left and one right), or four (two per side). Every attached channel retains an independent program, delivery clock and alert. Brief screen, relay and restart response times are intentionally simulated. Sounds are original spatialized training cues—not manufacturer alarm signals—and carry no clinical meaning. No clinical use. Reference workflow: v12.1; your pump’s firmware and configuration are not verified.</p>
+      <div class="device-simulation-tools"><span id="device-clock">Channel A · simulated time 00:00:00</span><span id="device-response" class="device-response" aria-live="polite"></span><label class="module-config">Attached modules <select id="device-module-count" aria-label="Attached pump modules"><option value="1">1 · channel A on left</option><option value="2">2 · one each side</option><option value="3" selected>3 · two left, one right</option><option value="4">4 · two each side</option></select></label><button id="device-startup" class="secondary">Rehearse startup</button><button id="device-advance" class="secondary">Advance 1 minute</button><button id="device-alarm" class="secondary">Introduce occlusion</button><button id="device-audio" class="secondary" aria-pressed="false">Sound off</button></div>
+      <p class="device-caption">Original generic modular fascia for simulation. Choose one module (channel A on the left), two (one per side), three (two left and one right), or four (two per side). Every attached channel retains an independent program, delivery clock and alert. Brief screen, relay and restart response times are intentionally simulated. Sounds are original spatialized training cues—not manufacturer alarm signals—and carry no clinical meaning. No clinical use. Reference workflow: v12.1; your pump’s firmware and configuration are not verified.</p>
     </div>
     <dialog id="device-override-dialog" aria-labelledby="device-override-title"><form method="dialog" class="dialog-top"><p class="eyebrow">Training annotation</p><button class="quiet" aria-label="Close override reason">✕</button></form><h2 id="device-override-title">Record your override reason</h2><p>This debrief annotation is part of the trainer, not a reproduced pump screen.</p><label for="device-override-reason">Why proceed in this exercise?</label><textarea id="device-override-reason" rows="3" maxlength="500"></textarea><button id="device-override-submit" class="primary" disabled>Confirm training override</button></dialog>`;
   const $ = id => host.querySelector(`#${id}`);
@@ -65,19 +65,20 @@ export function mountDevice(host, api) {
   function layoutModules(count){
     const assembly=host.querySelector('.device-assembly');
     if(Number(assembly.dataset.moduleCount)===count)return;
-    const layouts={2:{left:['A'],right:['B']},3:{left:['A','B'],right:['C']},4:{left:['A','B'],right:['C','D']}},layout=layouts[count]||layouts[3];
+    const layouts={1:{left:['A'],right:[]},2:{left:['A'],right:['B']},3:{left:['A','B'],right:['C']},4:{left:['A','B'],right:['C','D']}},layout=layouts[count]||layouts[3];
     const visible=new Set([...layout.left,...layout.right]);
     for(const [channel,module] of Object.entries(modules))module.hidden=!visible.has(channel);
     const inactive=Object.keys(modules).filter(channel=>!visible.has(channel));
     $('module-bank-left').replaceChildren(...layout.left.map(channel=>modules[channel]));
     $('module-bank-right').replaceChildren(...layout.right.map(channel=>modules[channel]),...inactive.map(channel=>modules[channel]));
     for(const [side,ids] of Object.entries(layout)){
-      const bank=$(`module-bank-${side}`);bank.dataset.moduleCount=String(ids.length);bank.style.setProperty('--module-count',String(ids.length));
-      bank.setAttribute('aria-label',`${side[0].toUpperCase()+side.slice(1)} pump modules: ${ids.join(', ')}`);
+      const bank=$(`module-bank-${side}`);bank.dataset.moduleCount=String(ids.length);bank.style.setProperty('--module-count',String(Math.max(1,ids.length)));bank.hidden=!ids.length;
+      bank.setAttribute('aria-label',`${side[0].toUpperCase()+side.slice(1)} pump modules: ${ids.length?ids.join(', '):'none'}`);
     }
     assembly.style.setProperty('--left-count',String(layout.left.length));assembly.style.setProperty('--right-count',String(layout.right.length));assembly.dataset.moduleCount=String(count);
   }
   const channelPan=(channel,count=api.context().moduleCount||3)=>({
+    1:{A:-.52},
     2:{A:-.58,B:.58},
     3:{A:-.68,B:-.24,C:.58},
     4:{A:-.72,B:-.26,C:.26,D:.72},
@@ -306,7 +307,7 @@ export function mountDevice(host, api) {
       action(1,'EXIT',()=>go('options'));
       footer=`>${DEVICE_CAPABILITY_MODEL.institutionVerified?'Institution verified':'No — reference defaults, not this institution\u2019s configuration'} · model ${DEVICE_CAPABILITY_MODEL.modelVersion} · separate from the drug library`;
     }else if(view==='software'){
-      title='SOFTWARE VERSIONS';row('Simulator','AinaDara prototype 0.6');row('Reference workflow','8015 user manual · v12.1');row('Your pump firmware','Not verified');row('No device connection','No firmware is installed here');
+      title='SOFTWARE VERSIONS';row('Simulator','AinaDara prototype 0.7');row('Reference workflow','8015 user manual · v12.1');row('Your pump firmware','Not verified');row('No device connection','No firmware is installed here');
       action(1,'EXIT',()=>go('overview'));footer='>Training implementation · not manufacturer software';
     }else if(view==='audio'){
       title='AUDIO';
@@ -339,7 +340,7 @@ export function mountDevice(host, api) {
         rows.at(-1).channel=true;rows.at(-1).selected=item.id===channel;
       });
       row(`${channel} primary infusion`,active?`${s.program.dose} ${e.doseUnit} · ${displayRate(s.result.rate)} mL/h`:'Library-based programming');
-      row('Connected modules','A · B · C');
+      row('Connected modules',c.channels.map(item=>item.id).join(' · '));
       action(1,'VOLUME INFUSED',()=>go('volume'));action(3,'AUDIO ADJUST',()=>go('audio'));
       footer='>Select channel · AC power (simulated)';
     }

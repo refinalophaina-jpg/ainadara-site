@@ -88,8 +88,9 @@
 .practice-grid.device-focused #device-host{max-width:1240px}
 .device-brand-rail{max-width:1180px}
 .device-assembly{grid-template-columns:252px minmax(440px,1fr) 126px;max-width:1180px;gap:5px}
-.device-assembly[data-module-count="2"]{grid-template-columns:126px minmax(440px,1fr) 126px}.device-assembly[data-module-count="4"]{grid-template-columns:252px minmax(440px,1fr) 252px}
+.device-assembly[data-module-count="1"]{grid-template-columns:126px minmax(440px,1fr) 0}.device-assembly[data-module-count="2"]{grid-template-columns:126px minmax(440px,1fr) 126px}.device-assembly[data-module-count="4"]{grid-template-columns:252px minmax(440px,1fr) 252px}
 .module-bank{display:grid;grid-template-columns:repeat(var(--module-count,1),minmax(0,1fr));align-items:stretch;gap:3px;margin:44px 0 8px;min-width:0}
+.module-bank[hidden]{display:none!important}
 .module-bank .channel-module{margin:0;padding:11px 7px 14px;border-radius:18px 11px 14px 13px;min-width:0;transition:transform .2s ease,filter .2s ease,box-shadow .2s ease}
 .module-bank .channel-module[hidden]{display:none!important}
 .module-bank .channel-module:first-child{border-radius:24px 11px 14px 17px}.module-bank .channel-module:last-child{border-radius:18px 15px 18px 11px}
@@ -103,10 +104,11 @@
 .device-response{min-height:15px;color:var(--accent)!important;font-weight:650;letter-spacing:.03em}.device-response:empty{display:none}.module-config{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-soft)}.module-config select{min-height:34px;padding:5px 28px 5px 8px;font-size:11px;background-color:var(--surface)}
 .channel-module[data-state=running] .module-latch span{border-color:#416b4a}.channel-module[data-state=alarm] .module-latch span{border-color:#9c342f}
 @media(max-width:1050px) and (min-width:761px){
-  .device-assembly{grid-template-columns:184px minmax(400px,1fr) 92px;--edge:23px;--gap:3px}.device-assembly[data-module-count="2"]{grid-template-columns:92px minmax(400px,1fr) 92px}.device-assembly[data-module-count="4"]{grid-template-columns:184px minmax(400px,1fr) 184px}.device-stage{padding-inline:10px}.module-bank .module-readout output{font-size:19px}.module-bank .channel-module{padding-inline:4px}.module-bank .channel-module .hardware-key{font-size:8px}.pcu{padding-inline:7px}.pcu-brand{padding-inline:5px}.pcu-brand>span{font-size:14px}.pcu-lower{grid-template-columns:40px minmax(0,1fr) 38px;gap:6px}.lcd-row>strong{font-size:12px}
+  .device-assembly{grid-template-columns:184px minmax(400px,1fr) 92px;--edge:23px;--gap:3px}.device-assembly[data-module-count="1"]{grid-template-columns:92px minmax(400px,1fr) 0}.device-assembly[data-module-count="2"]{grid-template-columns:92px minmax(400px,1fr) 92px}.device-assembly[data-module-count="4"]{grid-template-columns:184px minmax(400px,1fr) 184px}.device-stage{padding-inline:10px}.module-bank .module-readout output{font-size:19px}.module-bank .channel-module{padding-inline:4px}.module-bank .channel-module .hardware-key{font-size:8px}.pcu{padding-inline:7px}.pcu-brand{padding-inline:5px}.pcu-brand>span{font-size:14px}.pcu-lower{grid-template-columns:40px minmax(0,1fr) 38px;gap:6px}.lcd-row>strong{font-size:12px}
 }
 @media(max-width:760px){
   .device-assembly,.device-assembly[data-module-count]{grid-template-columns:1fr 1fr!important;max-width:610px;gap:4px;transform:none}.pcu{grid-row:1;grid-column:1/-1}.module-bank{grid-row:2;margin:0;gap:3px}.module-bank-left{grid-column:1}.module-bank-right{grid-column:2}
+  .device-assembly[data-module-count="1"] .module-bank-left{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))!important}.device-assembly[data-module-count="1"] .module-bank-left .channel-module{grid-column:1}
   .module-bank{grid-template-columns:repeat(2,minmax(0,1fr))!important}.module-bank-left[data-module-count="1"] .channel-module{grid-column:2}.module-bank-right[data-module-count="1"] .channel-module{grid-column:1}
   .module-bank .channel-module{padding:7px 4px 9px;border-radius:11px}.module-bank .module-title{margin:5px 0;font-size:8px}.module-bank .module-title small{display:none}.module-bank .module-lamp{height:22px}.module-bank .module-readout{padding:5px 1px 3px}.module-bank .module-readout output{font-size:18px}.module-bank .module-readout>span{display:none}.module-bank .module-readout strong{font-size:7px;line-height:14px;min-height:14px}.module-bank .channel-letter{font-size:20px;margin:5px 0}.module-bank .channel-module .hardware-key{width:100%;min-height:30px;margin-bottom:5px;font-size:8px}.module-bank .channel-module .channel-select{min-height:34px}.module-bank .channel-module button[title]{display:none}.module-bank .module-latch,.module-bank .module-foot{display:none}
 }

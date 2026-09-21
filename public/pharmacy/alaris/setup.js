@@ -1,4 +1,4 @@
-import {SETUP_STEPS,setupReady} from './setup-engine.js?v=0.6';
+import {SETUP_STEPS,setupReady} from './setup-engine.js?v=0.7';
 
 // Staged, photo-forward primary-bag rehearsal. The cutouts are original generic training
 // assets; interaction order remains deterministic and intentionally simpler than a device IFU.
@@ -9,10 +9,10 @@ export function mountSetup(host,api){
       <div class="scene-room" aria-hidden="true"><span class="scene-room-line"></span><span class="scene-floor-shadow"></span></div>
       <div class="scene-phase-rail" aria-hidden="true"><span data-phase-label="prepare">Prepare</span><span data-phase-label="connect">Connect</span><span data-phase-label="prime">Prime</span><span data-phase-label="load">Load</span><span data-phase-label="verify">Verify</span></div>
       <div id="scene-pole" class="scene-pole" aria-hidden="true"><span class="pole-hook"></span><span class="pole-stem"></span><span class="pole-base"></span></div>
-      <figure class="scene-supply-card" aria-hidden="true"><figcaption>Supply tray · visual reference</figcaption><img id="scene-supply-kit" src="./infusion-supply-kit.webp?v=0.6" alt=""></figure>
-      <figure class="scene-line-rig" aria-hidden="true"><img id="scene-primary-line" src="./setup-primary-line.webp?v=0.6" alt=""><span id="scene-prime-drop" class="scene-prime-drop"></span><span class="scene-prime-track"></span></figure>
-      <figure id="scene-pump" class="scene-pump-photo" aria-hidden="true"><img src="./setup-pump-three-channel.webp?v=0.6" alt=""><figcaption>3 channels · A/B left · C right</figcaption></figure>
-      <figure id="scene-open-module" class="scene-module-closeup" aria-hidden="true"><img src="./setup-open-module.webp?v=0.6" alt=""><figcaption>Channel A · door open</figcaption><span class="load-zone zone-upper">Upper fitment</span><span class="load-zone zone-safety">Safety clamp</span><span class="load-zone zone-sensor">Air detector</span></figure>
+      <figure class="scene-supply-card" aria-hidden="true"><figcaption>Supply tray · visual reference</figcaption><img id="scene-supply-kit" src="./infusion-supply-kit.webp?v=0.7" alt=""></figure>
+      <figure class="scene-line-rig" aria-hidden="true"><img id="scene-primary-line" src="./setup-primary-line.webp?v=0.7" alt=""><span id="scene-prime-drop" class="scene-prime-drop"></span><span class="scene-prime-track"></span></figure>
+      <figure id="scene-pump" class="scene-pump-photo" aria-hidden="true"><img src="./setup-pump-three-channel.webp?v=0.7" alt=""><figcaption>3 channels · A/B left · C right</figcaption></figure>
+      <figure id="scene-open-module" class="scene-module-closeup" aria-hidden="true"><img src="./setup-open-module.webp?v=0.7" alt=""><figcaption>Channel A · door open</figcaption><span class="load-zone zone-upper">Upper fitment</span><span class="load-zone zone-safety">Safety clamp</span><span class="load-zone zone-sensor">Air detector</span></figure>
       <div class="scene-readout" aria-hidden="true"><span id="scene-stage-kicker">Prepare</span><strong id="scene-stage-caption">Choose the prepared bag</strong><small id="scene-flow-state">Line not connected</small><span class="scene-progress"><i id="scene-progress-fill"></i></span></div>
       <button class="scene-hit hit-hook" data-target="hang">Hang on pole</button>
       <button class="scene-hit hit-bag" data-target="inspect">Inspect bag</button>
