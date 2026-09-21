@@ -11,9 +11,12 @@ const scenarios = {
   limits: { title:'Catch a programming error', description:'The rate field contains a deliberate error. Review it, interpret the alert, then correct it to match this order. Try 220 mL/h to explore a soft alert.', entry:'fluid-adult', dose:125, vtbi:100, weight:'', number:'03' },
   alarm: { title:'The infusion has stopped', description:'Start the ordered infusion, trigger a simulated occlusion, then work through the line check and resume delivery.', entry:'fluid-adult', dose:125, vtbi:100, weight:'', number:'04' },
 };
-let demo, library, imported = false, mode = 'free', state = initialState(), candidate = null, validationRevision = 0, renderedEvents = -1;
+const CHANNEL_IDS=['A','B','C','D'];
+const blankChannel=()=>({state:initialState(),area:'',medication:'',program:{dose:'',vtbi:'',weight:''},lineChecked:false});
+let activeChannel='A',moduleCount=3,channelSessions=Object.fromEntries(CHANNEL_IDS.map(id=>[id,blankChannel()]));
+let demo, library, imported = false, mode = 'free', state = channelSessions.A.state, candidate = null, validationRevision = 0, renderedEvents = -1;
 let device = null;
-let setupScene=null, setupState=initialSetup(), setupEnabled=false, presentation='device';
+let setupScene=null, setupState=initialSetup(), setupEnabled=false;
 let libraryPage=0;
 const labels = { editing:'Editing', ready:'Ready to start', soft:'Soft-limit alert', blocked:'Program blocked', running:'Infusing', paused:'Paused', alarm:'Occlusion', complete:'Complete' };
 const editable = () => ['editing','ready','soft','blocked'].includes(state.status);
@@ -31,16 +34,59 @@ const time = seconds => {
 };
 const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
 function text(id,value) { if ($(id).textContent !== String(value)) $(id).textContent = value; }
+function storeActiveChannel(){
+  const session=channelSessions[activeChannel];
+  session.state=state;
+  if(!$('area'))return;
+  session.area=$('area').value;session.medication=$('medication').value;session.program=program();session.lineChecked=$('line-checked').checked;
+}
+function channelContexts(){
+  storeActiveChannel();
+  return CHANNEL_IDS.slice(0,moduleCount).map(id=>{
+    const session=channelSessions[id],selected=library?.entries.find(e=>e.id===session.medication);
+    const infused=session.state.entry||selected;
+    const configured=!!session.state.entry||!!session.program.dose||!!session.program.vtbi;
+    return {id,status:session.state.status,entryName:configured&&infused?infused.name:'',doseUnit:configured&&infused?infused.doseUnit:'',program:session.state.program||session.program,result:session.state.result,delivered:session.state.delivered,elapsed:session.state.elapsed,events:session.state.events};
+  });
+}
+function selectChannel(id){
+  if(!CHANNEL_IDS.slice(0,moduleCount).includes(id)||id===activeChannel)return;
+  storeActiveChannel();activeChannel=id;
+  const session=channelSessions[id];state=session.state;renderedEvents=-1;
+  const fallback=library.entries.some(e=>e.area==='Critical Care')?'Critical Care':library.entries[0].area;
+  populateAreas(session.area||fallback);
+  if(session.medication&&library.entries.some(e=>e.id===session.medication&&e.area===$('area').value))populateEntries(session.medication);
+  $('dose').value=session.program.dose;$('vtbi').value=session.program.vtbi;$('weight').value=session.program.weight;
+  $('line-checked').checked=session.lineChecked;$('order-checked').checked=state.acknowledged;
+  renderCase();render();
+}
+function setModuleCount(value){
+  const next=Number(value);
+  if(![2,3,4].includes(next)||next===moduleCount)return true;
+  storeActiveChannel();
+  const removed=CHANNEL_IDS.slice(next,moduleCount);
+  const inUse=removed.some(id=>{const session=channelSessions[id];return session.state.events.length||session.state.status!=='editing'||session.program.dose||session.program.vtbi||session.program.weight;});
+  if(inUse)return false;
+  moduleCount=next;
+  if(!CHANNEL_IDS.slice(0,moduleCount).includes(activeChannel)){activeChannel='A';state=channelSessions.A.state;}
+  renderedEvents=-1;render();return true;
+}
 function dispatch(action) {
   if (['start','resume'].includes(action.type)&&setupEnabled&&!setupReady(setupState)) { text('setup-summary','Complete the physical setup before starting delivery.'); return; }
-  state = transition(state,action); render();
+  state = transition(state,action);channelSessions[activeChannel].state=state;render();
 }
-function mayReset() { return !(state.events.length || setupState.events.length || $('reflection').value) || confirm('Reset this attempt? Its action history and reflection will be cleared. Download the debrief first if you want to keep it.'); }
+function mayReset() { storeActiveChannel();return !(CHANNEL_IDS.some(id=>channelSessions[id].state.events.length) || setupState.events.length || $('reflection').value) || confirm('Reset all three channels? Their action histories and this reflection will be cleared. Download the debrief first if you want to keep it.'); }
 function clearAttempt(preserveSetup=false) {
-  state = initialState(); renderedEvents = -1;
+  channelSessions=Object.fromEntries(CHANNEL_IDS.map(id=>[id,blankChannel()]));activeChannel='A';state=channelSessions.A.state;renderedEvents=-1;
   if(!preserveSetup){setupState=initialSetup();if(setupEnabled)setPresentation('setup');}
   device?.reset();
   $('order-checked').checked = false; $('line-checked').checked = false; $('override-reason').value = ''; $('reflection').value = '';
+}
+function clearActiveChannel(){
+  const area=$('area').value,medication=$('medication').value;
+  channelSessions[activeChannel]={...blankChannel(),area,medication};state=channelSessions[activeChannel].state;renderedEvents=-1;
+  for(const id of ['dose','vtbi','weight'])$(id).value='';
+  $('order-checked').checked=false;$('line-checked').checked=false;render();
 }
 function populateAreas(preferred) {
   $('area').replaceChildren(...[...new Set(library.entries.map(e => e.area))].map(area => new Option(area,area)));
@@ -73,7 +119,7 @@ function configureExercise() {
   $('dose').value = mode === 'guided' && $('scenario').value === 'limits' ? '650' : '';
   $('vtbi').value = mode === 'guided' && $('scenario').value === 'limits' ? '100' : '';
   $('weight').value = '';
-  renderCase(); render();
+  storeActiveChannel();renderCase(); render();
 }
 function renderCase() {
   const s = scenario();
@@ -113,7 +159,9 @@ function renderChecks(target, checks) {
   $(target).replaceChildren(...checks.map((c,i) => { const li = node('li',undefined,`checkpoint ${c.done ? 'done' : ''}`); const icon = node('span',c.done ? '✓' : String(i+1),'step-icon'); icon.setAttribute('aria-hidden','true'); const content = node('span',`${c.done ? 'Completed: ' : ''}${c.title}`); content.append(node('small',c.detail)); li.append(icon,content); return li; }));
 }
 function render() {
+  channelSessions[activeChannel].state=state;
   const active = ['running','paused','alarm','complete'].includes(state.status);
+  text('worksheet-channel',`Channel ${activeChannel} · primary infusion`);
   $('program-fields').disabled = active;
   $('review').disabled = active;
   $('locked-note').hidden = !active;
@@ -147,12 +195,12 @@ function render() {
   $('override').disabled = $('override-reason').value.trim().length < 10;
   $('resolve').disabled = !$('line-checked').checked;
   const checks = checkpoints(); renderChecks('checkpoints',checks); renderChecks('debrief-checks',checks);
-  text('debrief-summary',`${checks.filter(c => c.done).length} of ${checks.length} checkpoints complete · ${labels[state.status]} · ${library.name} (${library.version})`);
-  $('download-attempt').disabled = !state.events.length && !setupState.events.length && !$('reflection').value;
-  const eventRevision=`${state.events.length}:${setupState.events.length}`;
+  text('debrief-summary',`Channel ${activeChannel} · ${checks.filter(c => c.done).length} of ${checks.length} checkpoints complete · ${labels[state.status]} · ${library.name} (${library.version})`);
+  $('download-attempt').disabled = !CHANNEL_IDS.some(id=>channelSessions[id].state.events.length) && !setupState.events.length && !$('reflection').value;
+  const eventRevision=`${CHANNEL_IDS.map(id=>channelSessions[id].state.events.length).join(':')}:${setupState.events.length}:${activeChannel}`;
   if (renderedEvents !== eventRevision) {
     renderedEvents = eventRevision;
-    const events=[...setupState.events.map(e=>({...e,type:e.accepted?'Setup':'Setup · try again',simulatedSeconds:null})),...state.events].sort((a,b)=>a.at.localeCompare(b.at));
+    const events=[...setupState.events.map(e=>({...e,type:e.accepted?'Setup':'Setup · try again',simulatedSeconds:null})),...CHANNEL_IDS.flatMap(id=>channelSessions[id].state.events.map(e=>({...e,type:`Channel ${id} · ${e.type}` })))].sort((a,b)=>a.at.localeCompare(b.at));
     $('event-empty').hidden = events.length > 0;
     $('event-list').replaceChildren(...events.map(e => { const li = node('li',undefined,'event'); li.append(node('strong',e.type),node('time',time(e.simulatedSeconds)),node('p',e.detail)); return li; }));
   }
@@ -162,7 +210,6 @@ function render() {
   device?.render();
 }
 function setPresentation(next){
-  presentation=next;
   for(const name of ['device','form','setup']){
     $(name==='form'?'worksheet':`${name}-host`).hidden=name!==next;
     $(`${name}-mode`).setAttribute('aria-pressed',String(name===next));
@@ -257,9 +304,11 @@ function wireEvents() {
   $('scenario').addEventListener('change',() => { if (!mayReset()) { $('scenario').value = lastScenario; return; } lastScenario = $('scenario').value; configureExercise(); });
   $('reset').addEventListener('click',() => { if (mayReset()) configureExercise(); });
   for (const next of ['guided','free']) $(next).addEventListener('click',() => { if (mode === next || (next === 'guided' && imported) || !mayReset()) return; mode = next; configureExercise(); });
-  $('reflection').addEventListener('input',() => { $('download-attempt').disabled = !state.events.length && !setupState.events.length && !$('reflection').value; });
+  $('reflection').addEventListener('input',() => { $('download-attempt').disabled = !CHANNEL_IDS.some(id=>channelSessions[id].state.events.length) && !setupState.events.length && !$('reflection').value; });
   $('download-attempt').addEventListener('click',() => {
-    const report = { application:'AinaDara infusion practice', prototypeVersion:'0.4', trainingOnly:true, exportedAt:new Date().toISOString(), mode, scenario:mode === 'guided' ? $('scenario').value : null, setup:{enabled:setupEnabled,complete:setupReady(setupState),stepsComplete:setupState.step,events:setupState.events,container:'generic prepared primary bag',physicalTechniqueAssessed:false}, library:{name:library.name,version:library.version,effectiveDate:library.effectiveDate,source:imported ? 'local import' : 'fictional demo',provenance:library.source||null}, status:state.status, program:state.program, entry:state.entry, deviceCapabilityModel:{id:DEVICE_CAPABILITY_MODEL.id,version:DEVICE_CAPABILITY_MODEL.modelVersion,institutionVerified:DEVICE_CAPABILITY_MODEL.institutionVerified}, assessmentMode:assessmentMode(), profileConfirmed:state.profileConfirmed, orderCheckAcknowledged:state.acknowledged, deliveredMl:state.delivered, simulatedSeconds:state.elapsed, checkpoints:checkpoints(), events:state.events, reflection:$('reflection').value };
+    storeActiveChannel();
+    const channels=CHANNEL_IDS.slice(0,moduleCount).map(id=>{const session=channelSessions[id],s=session.state;return {channel:id,status:s.status,program:s.program||session.program,entry:s.entry,profileConfirmed:s.profileConfirmed,orderCheckAcknowledged:s.acknowledged,deliveredMl:s.delivered,simulatedSeconds:s.elapsed,events:s.events};});
+    const report = { application:'AinaDara infusion practice', prototypeVersion:'0.5', trainingOnly:true, exportedAt:new Date().toISOString(), mode, scenario:mode === 'guided' ? $('scenario').value : null, moduleCount, activeChannel, channels, setup:{enabled:setupEnabled,complete:setupReady(setupState),stepsComplete:setupState.step,events:setupState.events,container:'generic prepared primary bag',physicalTechniqueAssessed:false}, library:{name:library.name,version:library.version,effectiveDate:library.effectiveDate,source:imported ? 'local import' : 'fictional demo',provenance:library.source||null}, status:state.status, program:state.program, entry:state.entry, deviceCapabilityModel:{id:DEVICE_CAPABILITY_MODEL.id,version:DEVICE_CAPABILITY_MODEL.modelVersion,institutionVerified:DEVICE_CAPABILITY_MODEL.institutionVerified}, assessmentMode:assessmentMode(), profileConfirmed:state.profileConfirmed, orderCheckAcknowledged:state.acknowledged, deliveredMl:state.delivered, simulatedSeconds:state.elapsed, checkpoints:checkpoints(), events:state.events, reflection:$('reflection').value };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})); const a = node('a'); a.href = url; a.download = 'ainadara-infusion-attempt.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url),1000);
   });
   for(const id of ['library-search','library-profile','library-support'])$(id).addEventListener('input',()=>{libraryPage=0;renderLibrary();});
@@ -293,8 +342,14 @@ function wireEvents() {
     applyLibrary(candidate); $('import-dialog').close();
   });
   $('restore-demo').addEventListener('click',() => { if (!mayReset()) return; library = demo; imported = false; mode = 'guided';libraryPage=0; $('library-search').value = '';$('library-profile').value='';$('library-support').value=''; configureExercise(); renderLibrary(); });
-  // Discrete simulation clock: hidden tabs do not accrue background delivery.
-  setInterval(() => { if (!document.hidden && state.status === 'running') dispatch({type:'tick',seconds:1}); },1000);
+  // Discrete simulation clock: every connected channel runs independently, while hidden
+  // tabs accrue nothing. The active worksheet remains a view onto the selected channel.
+  setInterval(() => {
+    if(document.hidden)return;
+    storeActiveChannel();let changed=false;
+    for(const id of CHANNEL_IDS){const session=channelSessions[id];if(session.state.status==='running'){session.state=transition(session.state,{type:'tick',seconds:1});changed=true;}}
+    state=channelSessions[activeChannel].state;if(changed)render();
+  },1000);
   setInterval(()=>{if(!document.hidden&&setupState.busy){setupState=setupTransition(setupState,{type:'tick',seconds:.25});render();}},250);
 }
 
@@ -306,8 +361,10 @@ try {
   demo = result.library; library = demo;
   wireEvents(); configureExercise(); renderLibrary();
   device = mountDevice($('device-host'),{
-    context:() => ({state, entry:entry(), program:program(), library, imported, editable:editable(), setupComplete:!setupEnabled||setupReady(setupState), lineChecked:$('line-checked').checked, mode:assessmentMode()}),
-    newPatient:() => { if (editable()) { clearAttempt(true); for(const id of ['dose','vtbi','weight']) $(id).value=''; render(); } },
+    context:() => ({state, entry:entry(), program:program(), library, imported, editable:editable(), setupComplete:!setupEnabled||setupReady(setupState), lineChecked:$('line-checked').checked, mode:assessmentMode(),activeChannel,moduleCount,channels:channelContexts()}),
+    selectChannel,
+    setModuleCount,
+    newPatient:() => { if (editable()) clearActiveChannel(); },
     dispatch,
     selectArea:area => { if (!editable()) return; $('area').value = area; $('area').dispatchEvent(new Event('change')); },
     selectEntry:id => { if (!editable()) return; $('medication').value = id; $('medication').dispatchEvent(new Event('change')); },
@@ -320,7 +377,7 @@ try {
     format:fmt, time,
   });
   setupScene=mountSetup($('setup-host'),{
-    state:()=>setupState,running:()=>state.status==='running',
+    state:()=>setupState,running:()=>channelContexts().some(channel=>channel.status==='running'),
     act:target=>{if(setupReady(setupState))return;setupState=setupTransition(setupState,{type:'act',target});render();},
     zoom:()=>{if(!setupReady(setupState))return;setPresentation('device');if(!state.events.length)$('device-startup').click();$('device-host').scrollIntoView({block:'start'});$('pcu-power').focus({preventScroll:true});},
   });
