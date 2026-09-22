@@ -137,3 +137,18 @@
 .hardware-key{border-radius:6px}.number-key{font-variant-numeric:tabular-nums}.pcu-lower{padding-top:12px}
 @media(max-width:760px){.device-stage{padding:18px 8px 14px}.device-brand-rail{margin-bottom:12px}.device-assembly{perspective:none}.pcu::before,.channel-module::before{display:none}.pcu{border-radius:24px 22px 18px 18px}.pcu-brand>span{font-size:16px}.device-stage::after{bottom:1%;height:5%}}
 @media(prefers-reduced-motion:reduce){.device-assembly{transform:none}}
+
+/* Each module carries its own medication, independently of the selected PCU screen. */
+.module-medication{width:100%;overflow:hidden;padding:5px 0 4px;border-top:1px solid #5c6142;color:#ffe39a;text-align:left;font:600 12px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;cursor:default}
+.module-medication-text{display:block;width:max-content;min-width:100%;white-space:nowrap;text-align:center}
+.module-medication[data-configured=false]{color:#b8c3b2;font-size:11px}
+.module-medication[data-configured=false] .module-medication-text{width:auto;white-space:normal}
+.module-medication:focus-visible{outline:2px solid #ffe39a;outline-offset:-2px}
+.module-medication:focus .module-medication-text{width:auto;white-space:normal;overflow-wrap:anywhere;animation:none}
+@media(prefers-reduced-motion:no-preference){
+  .module-medication.is-scrolling:not(:focus) .module-medication-text{animation:medication-ticker var(--drug-duration,10s) linear infinite;animation-play-state:paused}
+  .module-medication.is-scrolling[data-visible=true]:not(:hover):not(:focus) .module-medication-text{animation-play-state:running}
+  .ticker-page-hidden .module-medication.is-scrolling .module-medication-text{animation-play-state:paused!important}
+  @keyframes medication-ticker{0%,15%,100%{transform:translateX(0)}45%,60%{transform:translateX(var(--drug-travel,0px))}90%{transform:translateX(0)}}
+}
+@media(prefers-reduced-motion:reduce){.module-medication .module-medication-text{width:auto;white-space:normal;overflow-wrap:anywhere}}

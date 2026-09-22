@@ -11,7 +11,7 @@ export function mountDevice(host, api) {
     return `<section class="channel-module" data-module-channel="${channel}" aria-label="Channel ${channel} pump module">
       <div class="module-lamp" id="${id('module-lamp')}"><span>ALARM</span><span>INFUSE</span><span>STANDBY</span></div>
       <div class="module-title">Pump module <small>SIMULATION</small></div>
-      <div class="module-readout"><output id="${id('module-rate')}">—</output><span>RATE (mL/h)</span><strong id="${id('module-status')}">STANDBY</strong></div>
+      <div class="module-readout"><output id="${id('module-rate')}">—</output><span>RATE (mL/h)</span><div id="${id('module-medication')}" class="module-medication" tabindex="0" role="group" aria-label="Channel ${channel}: no drug selected"><span class="module-medication-text">No drug selected</span></div><strong id="${id('module-status')}">STANDBY</strong></div>
       <span class="channel-letter">${channel}</span>
       <button id="${id('channel-select')}" data-channel-select="${channel}" class="hardware-key channel-select">Channel<br>Select</button>
       <button id="${id('module-pause')}" data-channel-pause="${channel}" class="hardware-key">Pause</button>
@@ -62,6 +62,24 @@ export function mountDevice(host, api) {
   const moduleId=(name,channel)=>channel==='A'?name:`${name}-${channel}`;
   const channelNode=(name,channel)=>$(moduleId(name,channel));
   const modules=Object.fromEntries(['A','B','C','D'].map(channel=>[channel,host.querySelector(`[data-module-channel="${channel}"]`)]));
+  // Keep the text node stable across delivery ticks so the name can finish scrolling.
+  // Measurements run only when a name or layout changes, not on the simulation clock.
+  const medicationStrips=Object.values(modules).map(module=>module.querySelector('.module-medication'));
+  function measureMedication(strip){
+    const track=strip.firstElementChild;
+    const distance=Math.max(0,track.scrollWidth-strip.clientWidth);
+    strip.classList.toggle('is-scrolling',strip.dataset.configured==='true'&&distance>1);
+    strip.style.setProperty('--drug-travel',`${-distance}px`);
+    strip.style.setProperty('--drug-duration',`${Math.max(8,distance*2/24+5)}s`);
+  }
+  const medicationResize=typeof ResizeObserver==='function'?new ResizeObserver(entries=>entries.forEach(({target})=>measureMedication(target))):null;
+  medicationStrips.forEach(strip=>medicationResize?.observe(strip));
+  const medicationVisibility=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>entries.forEach(({target,isIntersecting})=>{target.dataset.visible=String(isIntersecting);})):null;
+  medicationStrips.forEach(strip=>{strip.dataset.visible=String(!medicationVisibility);medicationVisibility?.observe(strip);});
+  function updateMedicationVisibility(){host.classList.toggle('ticker-page-hidden',document.hidden);}
+  document.addEventListener('visibilitychange',updateMedicationVisibility);
+  updateMedicationVisibility();
+  if(!medicationResize)window.addEventListener('resize',()=>medicationStrips.forEach(measureMedication));
   function layoutModules(count){
     const assembly=host.querySelector('.device-assembly');
     if(Number(assembly.dataset.moduleCount)===count)return;
@@ -404,6 +422,13 @@ export function mountDevice(host, api) {
       const shown=!!item.result&&['ready','running','paused','alarm','complete'].includes(item.status);
       channelNode('module-rate',item.id).textContent=shown?displayModuleRate(item.result.rate):'—';
       channelNode('module-status',item.id).textContent=moduleStatus(item.status);
+      const strip=channelNode('module-medication',item.id),name=item.entryName||'No drug selected';
+      if(strip.dataset.name!==name){
+        strip.dataset.name=name;strip.dataset.configured=String(!!item.entryName);
+        strip.firstElementChild.textContent=name;
+        strip.title=name;strip.setAttribute('aria-label',`Channel ${item.id}: ${name}`);
+        requestAnimationFrame(()=>measureMedication(strip));
+      }
       const lamp=channelNode('module-lamp',item.id),module=host.querySelector(`[data-module-channel="${item.id}"]`);
       lamp.dataset.state=item.status;lamp.classList.toggle('acknowledged',silenced.has(item.id));
       module.classList.toggle('is-active',item.id===channel);module.dataset.state=item.status;
