@@ -1,6 +1,6 @@
-import { UNITS, evaluate, softRange, limitText } from './engine.js?v=0.7';
-import { displayRate, displayModuleRate, capabilityRows, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.7';
-import { createAudio } from './audio.js?v=0.7';
+import { UNITS, evaluate, softRange, limitText } from './engine.js?v=0.8';
+import { displayRate, displayModuleRate, capabilityRows, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.8';
+import { createAudio } from './audio.js?v=0.8';
 
 // The device is another view of the SAME engine, library and attempt as the worksheet.
 // Reference: BD 8015 v12.1 manual, pp. 23–24, 40, 47, 53, 57, 91–96, 325.
@@ -9,7 +9,7 @@ export function mountDevice(host, api) {
   const moduleMarkup=channel=>{
     const legacy=channel==='A',id=name=>legacy?name:`${name}-${channel}`;
     return `<section class="channel-module" data-module-channel="${channel}" aria-label="Channel ${channel} pump module">
-      <div class="module-lamp" id="${id('module-lamp')}"><span>INFUSING</span><span>ALARM</span></div>
+      <div class="module-lamp" id="${id('module-lamp')}"><span>ALARM</span><span>INFUSE</span><span>STANDBY</span></div>
       <div class="module-title">Pump module <small>SIMULATION</small></div>
       <div class="module-readout"><output id="${id('module-rate')}">—</output><span>RATE (mL/h)</span><strong id="${id('module-status')}">STANDBY</strong></div>
       <span class="channel-letter">${channel}</span>
@@ -17,7 +17,7 @@ export function mountDevice(host, api) {
       <button id="${id('module-pause')}" data-channel-pause="${channel}" class="hardware-key">Pause</button>
       <button class="hardware-key" disabled title="Channel power-off is not simulated">Channel<br>Off</button>
       <button id="${id('module-restart')}" data-channel-restart="${channel}" class="hardware-key">Restart</button>
-      <div class="module-latch" aria-hidden="true"><span></span></div>
+      <div class="module-latch" aria-hidden="true"><small>LOAD FIRST</small><span class="latch-upper"></span><span class="latch-channel"></span><span class="latch-lower"></span><span class="latch-clamp"></span></div>
       <small class="module-foot">Channel ${channel}<br>Primary infusion</small>
     </section>`;
   };
@@ -27,7 +27,7 @@ export function mountDevice(host, api) {
       <div class="device-assembly" tabindex="0" aria-label="Pump controls. Use the side buttons and numeric keypad.">
         <div id="module-bank-left" class="module-bank module-bank-left" aria-label="Left pump modules">${['A','B'].map(moduleMarkup).join('')}</div>
         <section class="pcu" aria-label="Patient care unit simulator">
-          <div class="pcu-brand"><span>INFUSION <strong>SYSTEM</strong></span><small>SIMULATION</small></div>
+          <div class="pcu-brand"><span>AINADARA <strong>PCU</strong></span><small>SIMULATION</small></div>
           <div class="pcu-display">
             <div class="softkeys left-keys" aria-label="Left screen keys"></div>
             <div class="lcd" aria-label="Pump LCD">
@@ -54,11 +54,11 @@ export function mountDevice(host, api) {
   const $ = id => host.querySelector(`#${id}`);
   const node = (tag,text,cls) => {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
   const put = (id,text) => {const e=$(id);if(e.textContent !== String(text))e.textContent=text;};
-  let view='overview', page=0, field='dose', buffer='', previous='program';
+  let view='overview', page=0, field='dose', buffer='', previous='program', lcdContrast=1;
   const silenced=new Set(),lastStatus=new Map(),lastEventCount=new Map();
   let responseTimer=0,responseBusy=false;
   let pendingArea='', libraryKind='drugs', alphabet='', profileReturn='overview';
-  const audio=createAudio();
+  const audio=api.audio||createAudio();
   const moduleId=(name,channel)=>channel==='A'?name:`${name}-${channel}`;
   const channelNode=(name,channel)=>$(moduleId(name,channel));
   const modules=Object.fromEntries(['A','B','C','D'].map(channel=>[channel,host.querySelector(`[data-module-channel="${channel}"]`)]));
@@ -132,7 +132,7 @@ export function mountDevice(host, api) {
     else if(view==='concentration')go('medications');
     else if(view==='advisory')go('concentration');
     else if(view==='profiles')go(profileReturn);
-    else if(['options','volume','infusionmenu','dataset','software','capability','audio','profileconfirm','newpatient'].includes(view))go('overview');
+    else if(['options','volume','infusionmenu','dataset','software','capability','audio','contrast','profileconfirm','newpatient'].includes(view))go('overview');
     else if(view==='standby')return;
     else if(api.context().editable){api.dispatch({type:'edit'});go('program');}
     else go('overview');
@@ -151,13 +151,20 @@ export function mountDevice(host, api) {
     const channel=button.dataset.channelRestart;
     response(`Restarting channel ${channel}…`,480,()=>{if(api.context().activeChannel!==channel)api.selectChannel(channel);api.dispatch({type:'resume'});go('status');});
   }));
-  $('pcu-power').addEventListener('click',()=>{if(view==='standby'){const c=api.context();audio.play('power',soundFor(c.activeChannel,c.moduleCount));response('Starting control unit…',420,()=>go('newpatient'));}});
+  $('pcu-power').addEventListener('click',()=>{if(view==='standby'){
+    const c=api.context();audio.play('power',soundFor(c.activeChannel,c.moduleCount));go('boot');
+    response('Running display and control self-check…',1050,()=>go('newpatient'));
+  }});
   $('device-startup').addEventListener('click',()=>{if(api.context().editable){api.dispatch({type:'edit'});go('standby');}});
   $('pcu-options').addEventListener('click',()=>go('options'));
   $('pcu-silence').addEventListener('click',()=>{silenced.add(api.context().activeChannel);audio.stopLoop('alarm');render();});
   $('device-advance').addEventListener('click',api.advance);
   $('device-alarm').addEventListener('click',()=>{api.alarm();go('status');});
   $('device-audio').addEventListener('click',()=>{const on=audio.toggle();$('device-audio').textContent=on?'Sound on':'Sound off';$('device-audio').setAttribute('aria-pressed',String(on));if(!on)audio.stopLoops();render();});
+  audio.subscribe?.(({enabled,level,active})=>{
+    $('device-audio').textContent=enabled?(active?`Sound on · ${level}`:'Sound on · tap'):'Sound off';
+    $('device-audio').setAttribute('aria-pressed',String(enabled));
+  });
   $('device-module-count').addEventListener('change',()=>{
     const next=Number($('device-module-count').value);
     if(!api.setModuleCount(next)){
@@ -183,7 +190,7 @@ export function mountDevice(host, api) {
     const channel=c.activeChannel||'A';
     layoutModules(c.moduleCount||3);$('device-module-count').value=String(c.moduleCount||3);
     const result=s.result||evaluate(e,p), active=['running','paused','alarm','complete'].includes(s.status);
-    if(active&&['standby','newpatient','profileconfirm','profiles','infusionmenu','medications','concentration','advisory','number','program','review'].includes(view))view='status';
+    if(active&&['standby','boot','newpatient','profileconfirm','profiles','infusionmenu','medications','concentration','advisory','number','program','review'].includes(view))view='status';
     const rows=[],bottom=[];
     const row=(label,value='',l=null,r=null,rlabel='')=>rows.push({label,value,l,r,rlabel});
     const action=(slot,label,run)=>{bottom[slot-1]={label,run};};
@@ -193,6 +200,13 @@ export function mountDevice(host, api) {
     if(view==='standby'){
       title='STANDBY';footer='>Press SYSTEM ON to rehearse startup';
       row('Simulation standby','No delivery is taking place');
+    }else if(view==='boot'){
+      title='INFUSION SYSTEM';
+      row('AinaDara simulation trainer','Starting control unit');
+      row('DISPLAY SELF-CHECK','Please wait');
+      row('Generic training interface','No device or network connection');
+      row('EDUCATION ONLY','Not for clinical use');
+      footer='Initializing controls and attached modules…';
     }else if(view==='newpatient'){
       title='NEW PATIENT?';
       row('New simulated patient?');
@@ -284,18 +298,37 @@ export function mountDevice(host, api) {
       const refused=s.events.at(-1)?.type==='Start blocked'?s.events.at(-1).detail:'';
       footer=!c.setupComplete?'Complete the setup scene before START':refused?`>${refused}`:s.reason?'Soft-limit override recorded. Confirm the program before starting.':'Compare every parameter with the exercise order, then press Start.';
     }else if(view==='options'){
-      title=`SYSTEM OPTIONS ${page+1} OF 2`;
+      title=`SYSTEM OPTIONS ${page+1} OF 3`;
       if(page===0){
+        row('Display Contrast','',()=>go('contrast'));
+        row('Patient ID','Not collected in this trainer');
+        row('Clinician ID','Not collected in this trainer');
+        row('Power Down All Channels','Use Reset practice instead');
+        row('Anesthesia Mode','Not simulated');
+      }else if(page===1){
         row('Volume Infused','',()=>go('volume'));
         row('Profile selection',c.editable?'Trainer shortcut':'Locked during an attempt',c.editable?()=>{api.dispatch({type:'edit'});pendingArea=e.area;profileReturn='options';go('profiles');}:null);
-        row('Audio','Optional synthesized training tones',()=>go('audio'));
-      }else{
-        row('Software Versions','',()=>go('software'));
+        row('Audio Adjust','Original training soundscape',()=>go('audio'));
         row('Data Set Status','',()=>go('dataset'));
         row('Device Limits','Capability model',()=>go('capability'));
+      }else{
+        row('Software Versions','',()=>go('software'));
+        row('Network Status','Not connected');
+        row('Wireless Configuration','Not simulated');
+        row('Maintenance Mode','Not simulated');
+        row('About this trainer','AinaDara · education only');
       }
-      action(1,'EXIT',()=>go('overview'));action(4,page?'PAGE UP':'PAGE DOWN',()=>{page=page?0:1;render();});
-      footer='>Select an option · shortened training menu';
+      action(1,'EXIT',()=>go('overview'));
+      action(3,page?'PAGE UP':'',page?()=>{page-=1;render();}:null);
+      action(4,page<2?'PAGE DOWN':'',page<2?()=>{page+=1;render();}:null);
+      footer='>Select an option or EXIT · unavailable device functions remain disabled';
+    }else if(view==='contrast'){
+      title='DISPLAY CONTRAST';
+      row('Display contrast',`${Math.round(lcdContrast*100)}%`,null,()=>{lcdContrast=Math.min(1.28,lcdContrast+.07);render();},'LIGHTER');
+      row('Darker','',()=>{lcdContrast=Math.max(.72,lcdContrast-.07);render();});
+      row('Training display only','This does not change your browser or device');
+      action(1,'EXIT',()=>go('options'));action(4,'CONFIRM',()=>go('options'));
+      footer='>Adjust display to desired contrast';
     }else if(view==='dataset'){
       title='DATA SET STATUS';row('Active training data set',c.library.name);row('Version',c.library.version);row('Effective date',c.library.effectiveDate||'Not supplied');row('Profile',e.area);row('Source',c.imported?'Local import · unvalidated':'Fictional demo library');
       action(1,'EXIT',()=>go('overview'));footer='>Library identity is separate from device firmware';
@@ -307,16 +340,17 @@ export function mountDevice(host, api) {
       action(1,'EXIT',()=>go('options'));
       footer=`>${DEVICE_CAPABILITY_MODEL.institutionVerified?'Institution verified':'No — reference defaults, not this institution\u2019s configuration'} · model ${DEVICE_CAPABILITY_MODEL.modelVersion} · separate from the drug library`;
     }else if(view==='software'){
-      title='SOFTWARE VERSIONS';row('Simulator','AinaDara prototype 0.7');row('Reference workflow','8015 user manual · v12.1');row('Your pump firmware','Not verified');row('No device connection','No firmware is installed here');
+      title='SOFTWARE VERSIONS';row('Trainer interface','AinaDara prototype 0.8');row('Simulation engine','0.8 · browser runtime');row('Reference workflow','Public user manual · v12.1');row('Device firmware','Not installed or connected');row('Institution settings',c.imported?'Private library loaded':'Fictional demo data');
       action(1,'EXIT',()=>go('overview'));footer='>Training implementation · not manufacturer software';
     }else if(view==='audio'){
-      title='AUDIO';
-      row(audio.enabled?'Training tones on':'Training tones off',audio.supported?'Toggle':'Not available in this browser',audio.supported?()=>{audio.toggle();$('device-audio').textContent=audio.enabled?'Sound on':'Sound off';$('device-audio').setAttribute('aria-pressed',String(audio.enabled));render();}:null);
-      row('Layered WebAudio','Original tones, not manufacturer alarm signals');
-      row('Channel position','Stereo placement follows the attached module side');
-      row('No clinical meaning','Pitch, rhythm and position do not encode priority');
-      row('Silence control','Stops this channel alert; visual state remains');
-      action(1,'EXIT',()=>go('overview'));footer='>Training soundscape only · volume follows your device';
+      title='AUDIO VOLUME ADJUST';
+      row(audio.enabled?'Training sound ON':'Training sound OFF',audio.supported?'Select to toggle':'Not available in this browser',audio.supported?()=>{audio.toggle();render();}:null);
+      row('Volume level',`${audio.level} of 5`,audio.level>1?()=>{audio.softer();audio.play('key');render();}:null,audio.level<5?()=>{audio.louder();audio.play('key');render();}:null,audio.level<5?'LOUDER':'');
+      row('Test training cue','Original two-pulse infusion alert',()=>audio.play('alarm',soundFor(channel,c.moduleCount)));
+      row('Browser audio',!audio.enabled?'Off':audio.active?'Ready':'Tap any control to enable');
+      row('Channel position','Stereo follows the attached module side');
+      action(1,'MAIN SCREEN',()=>go('overview'));action(4,'TEST',()=>audio.play('alarm',soundFor(channel,c.moduleCount)));
+      footer='>Original training tones · levels 1–5 · no clinical meaning';
     }else if(view==='volume'){
       title='VOLUME INFUSED';
       c.channels.forEach(item=>row(`Channel ${item.id}`,`${api.format(item.delivered)} mL · ${item.status.toUpperCase()}`));
@@ -347,6 +381,7 @@ export function mountDevice(host, api) {
     put('lcd-title',title);put('lcd-library',view==='overview'?c.library.name:`${c.library.version} · ${e.area}`);put('lcd-footer',footer);
     host.querySelector('.lcd').dataset.tone=s.status==='alarm'?'alarm':['soft','blocked'].includes(s.status)?'warning':'normal';
     host.querySelector('.lcd').dataset.view=view;
+    host.querySelector('.lcd').style.setProperty('--lcd-contrast',String(lcdContrast));
     $('lcd-bottom-labels').replaceChildren(...Array.from({length:4},(_,i)=>{
       const item=bottom[i],label=node('span',item?.label||'');
       label.className=item?.run?'available':'';bottomKeys[i].disabled=!item?.run;bottomKeys[i].onclick=item?.run||null;
@@ -389,16 +424,16 @@ export function mountDevice(host, api) {
       }
     }
     const soundingAlarm=c.channels.find(item=>item.status==='alarm'&&!silenced.has(item.id));
-    if(soundingAlarm)audio.loop('alarm',1900,soundFor(soundingAlarm.id,c.moduleCount),'alarm');else audio.stopLoop('alarm');
+    if(soundingAlarm)audio.loop('alarm',1800,soundFor(soundingAlarm.id,c.moduleCount),'alarm');else audio.stopLoop('alarm');
     const flowing=c.channels.find(item=>item.status==='running');
     if(flowing)audio.loop('flow',2850,soundFor(flowing.id,c.moduleCount),'flow');else audio.stopLoop('flow');
     $('pcu-silence').disabled=s.status!=='alarm';
     $('device-advance').disabled=s.status!=='running';$('device-alarm').disabled=s.status!=='running';
     $('device-startup').disabled=!c.editable;
-    host.querySelectorAll('[data-channel-select]').forEach(button=>button.disabled=['standby','newpatient','profileconfirm','profiles'].includes(view));
-    $('pcu-options').disabled=['standby','newpatient','profileconfirm','profiles'].includes(view);
+    host.querySelectorAll('[data-channel-select]').forEach(button=>button.disabled=['standby','boot','newpatient','profileconfirm','profiles'].includes(view));
+    $('pcu-options').disabled=['standby','boot','newpatient','profileconfirm','profiles'].includes(view);
     $('pcu-power').disabled=view!=='standby';
-    numericButtons.forEach(button=>button.disabled=button.dataset.key==='Cancel'?['standby','overview'].includes(view):view!=='number'||!c.editable);
+    numericButtons.forEach(button=>button.disabled=button.dataset.key==='Cancel'?['standby','boot','overview'].includes(view):view!=='number'||!c.editable);
     put('device-clock',`Channel ${channel} · simulated time ${api.time(s.elapsed)}`);
     put('device-view-label',`Interactive pump trainer · channel ${channel}`);
     host.querySelector('.device-assembly').dataset.activeChannel=channel;

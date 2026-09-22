@@ -1,4 +1,4 @@
-import {SETUP_STEPS,setupReady} from './setup-engine.js?v=0.7';
+import {SETUP_STEPS,setupReady} from './setup-engine.js?v=0.8';
 
 // Staged, photo-forward primary-bag rehearsal. The cutouts are original generic training
 // assets; interaction order remains deterministic and intentionally simpler than a device IFU.
@@ -9,10 +9,10 @@ export function mountSetup(host,api){
       <div class="scene-room" aria-hidden="true"><span class="scene-room-line"></span><span class="scene-floor-shadow"></span></div>
       <div class="scene-phase-rail" aria-hidden="true"><span data-phase-label="prepare">Prepare</span><span data-phase-label="connect">Connect</span><span data-phase-label="prime">Prime</span><span data-phase-label="load">Load</span><span data-phase-label="verify">Verify</span></div>
       <div id="scene-pole" class="scene-pole" aria-hidden="true"><span class="pole-hook"></span><span class="pole-stem"></span><span class="pole-base"></span></div>
-      <figure class="scene-supply-card" aria-hidden="true"><figcaption>Supply tray · visual reference</figcaption><img id="scene-supply-kit" src="./infusion-supply-kit.webp?v=0.7" alt=""></figure>
-      <figure class="scene-line-rig" aria-hidden="true"><img id="scene-primary-line" src="./setup-primary-line.webp?v=0.7" alt=""><span id="scene-prime-drop" class="scene-prime-drop"></span><span class="scene-prime-track"></span></figure>
-      <figure id="scene-pump" class="scene-pump-photo" aria-hidden="true"><img src="./setup-pump-three-channel.webp?v=0.7" alt=""><figcaption>3 channels · A/B left · C right</figcaption></figure>
-      <figure id="scene-open-module" class="scene-module-closeup" aria-hidden="true"><img src="./setup-open-module.webp?v=0.7" alt=""><figcaption>Channel A · door open</figcaption><span class="load-zone zone-upper">Upper fitment</span><span class="load-zone zone-safety">Safety clamp</span><span class="load-zone zone-sensor">Air detector</span></figure>
+      <figure class="scene-supply-card" aria-hidden="true"><figcaption>Supply tray · visual reference</figcaption><img id="scene-supply-kit" src="./infusion-supply-kit.webp?v=0.8" alt=""></figure>
+      <figure class="scene-line-rig" aria-hidden="true"><img id="scene-primary-line" src="./setup-primary-line.webp?v=0.8" alt=""><span id="scene-prime-drop" class="scene-prime-drop"></span><span class="scene-prime-track"></span></figure>
+      <figure id="scene-pump" class="scene-pump-photo" aria-hidden="true"><img src="./setup-pump-three-channel.webp?v=0.8" alt=""><figcaption>3 channels · A/B left · C right</figcaption></figure>
+      <figure id="scene-open-module" class="scene-module-closeup" aria-hidden="true"><img src="./setup-open-module.webp?v=0.8" alt=""><figcaption>Channel A · door open</figcaption><span class="load-zone zone-upper">Upper fitment</span><span class="load-zone zone-safety">Safety clamp</span><span class="load-zone zone-sensor">Air detector</span></figure>
       <div class="scene-readout" aria-hidden="true"><span id="scene-stage-kicker">Prepare</span><strong id="scene-stage-caption">Choose the prepared bag</strong><small id="scene-flow-state">Line not connected</small><span class="scene-progress"><i id="scene-progress-fill"></i></span></div>
       <button class="scene-hit hit-hook" data-target="hang">Hang on pole</button>
       <button class="scene-hit hit-bag" data-target="inspect">Inspect bag</button>
@@ -34,15 +34,20 @@ export function mountSetup(host,api){
   const $=id=>host.querySelector(`#${id}`);
   const write=(id,value)=>{if($(id).textContent!==value)$(id).textContent=value;};
   const hit=target=>host.querySelector(`[data-target="${target}"]`);
+  const cue=target=>{
+    const name={hang:'switch',inspect:'key',bag:'key',set:'key',spike:'clamp',chamber:'prime',clamp:'clamp',prime:'prime','inspect-line':'key',door:'door',upper:'clamp',safety:'clamp',sensor:'clamp','no-flow':'accept'}[target]||'key';
+    api.audio?.play(name,{pan:(target==='door'||['upper','safety','sensor'].includes(target)) ? 0.35 : -0.2});
+  };
   host.querySelectorAll('[data-target]').forEach(button=>button.addEventListener('click',()=>{
     let target=button.dataset.target;
     const s=api.state();
     if(target==='clamp'&&s.step===7)target='prime';
     if(target==='chamber'&&s.step===16)target='no-flow';
+    cue(target);
     api.act(target);
   }));
-  $('setup-action').addEventListener('click',()=>{const step=SETUP_STEPS[api.state().step];if(step)api.act(step[0]);});
-  for(const id of ['scene-zoom','setup-zoom'])$(id).addEventListener('click',api.zoom);
+  $('setup-action').addEventListener('click',()=>{const step=SETUP_STEPS[api.state().step];if(step){cue(step[0]);api.act(step[0]);}});
+  for(const id of ['scene-zoom','setup-zoom'])$(id).addEventListener('click',()=>{api.audio?.play('accept',{pan:.25});api.zoom();});
   const phaseFor=(s,ready)=>ready?'ready':s.step<3?'prepare':s.step<6?'connect':s.step<10?'prime':s.step<15?'load':'verify';
   const phaseNames={prepare:'Prepare',connect:'Connect',prime:'Prime',load:'Load',verify:'Verify',ready:'Ready'};
   function render(){

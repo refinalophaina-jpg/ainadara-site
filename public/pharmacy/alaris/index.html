@@ -6,24 +6,23 @@
   <meta name="description" content="Practice smart-pump programming, library selection, and limit alerts in AinaDara’s educational infusion simulator.">
   <meta name="theme-color" content="#faf5ed">
   <link rel="canonical" href="https://ainadara.com/pharmacy/alaris/">
-  <link rel="icon" href="./favicon.svg?v=0.7" type="image/svg+xml">
-  <link rel="preload" href="./infusion-supply-kit.webp?v=0.7" as="image" type="image/webp">
-  <link rel="preload" href="./setup-pump-three-channel.webp?v=0.7" as="image" type="image/webp">
-  <link rel="preload" href="./setup-primary-line.webp?v=0.7" as="image" type="image/webp">
-  <link rel="preload" href="./setup-open-module.webp?v=0.7" as="image" type="image/webp">
+  <link rel="icon" href="./favicon.svg?v=0.8" type="image/svg+xml">
+  <link rel="preload" href="./infusion-supply-kit.webp?v=0.8" as="image" type="image/webp">
+  <link rel="preload" href="./setup-pump-three-channel.webp?v=0.8" as="image" type="image/webp">
+  <link rel="preload" href="./setup-primary-line.webp?v=0.8" as="image" type="image/webp">
+  <link rel="preload" href="./setup-open-module.webp?v=0.8" as="image" type="image/webp">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=0.7">
-  <link rel="stylesheet" href="./device.css?v=0.7">
-  <link rel="stylesheet" href="./setup.css?v=0.7">
-  <script src="./theme.js?v=0.7"></script>
-  <script type="module" src="./app.js?v=0.7"></script>
+  <link rel="stylesheet" href="./styles.css?v=0.8">
+  <link rel="stylesheet" href="./device.css?v=0.8">
+  <link rel="stylesheet" href="./setup.css?v=0.8">
+  <script src="./theme.js?v=0.8"></script>
+  <script type="module" src="./app.js?v=0.8"></script>
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to simulator</a>
-  <svg class="noise-grain" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><filter id="paper-noise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" seed="3"/><feColorMatrix values="0 0 0 0 0.18  0 0 0 0 0.21  0 0 0 0 0.16  0 0 0 0.8 0"/></filter><rect width="100%" height="100%" filter="url(#paper-noise)"/></svg>
   <div class="shell">
-    <header class="masthead"><a class="wordmark brand-link" href="https://ainadara.com" aria-label="AinaDara home"><svg class="brand-mark" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="#ede8dd" stroke="#2d3428" stroke-width="1.5"/><g stroke="#cc785c" fill="none" stroke-width="1.2" stroke-linecap="round"><circle cx="22" cy="26" r="7"/><circle cx="22" cy="26" r="4"/><circle cx="22" cy="26" r="1.5"/></g><g stroke="#4a3d7a" stroke-width="1.2" stroke-linecap="round"><line x1="44" y1="24" x2="49" y2="18"/><line x1="44" y1="24" x2="51" y2="24"/><line x1="44" y1="24" x2="49" y2="30"/><line x1="44" y1="24" x2="42" y2="32"/></g><path d="M18 42Q32 52 46 42" stroke="#4a5c28" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><span class="wordmark-text">Aina<em>Dara</em></span><span class="thread">/ pharmacy</span></a><div class="header-actions"><span class="badge live-badge">Live · prototype 0.7</span><button id="theme" class="quiet" aria-label="Toggle dark theme" aria-pressed="false">◐ <span>Theme</span></button></div></header>
+    <header class="masthead"><a class="wordmark brand-link" href="https://ainadara.com" aria-label="AinaDara home"><svg class="brand-mark" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="#ede8dd" stroke="#2d3428" stroke-width="1.5"/><g stroke="#cc785c" fill="none" stroke-width="1.2" stroke-linecap="round"><circle cx="22" cy="26" r="7"/><circle cx="22" cy="26" r="4"/><circle cx="22" cy="26" r="1.5"/></g><g stroke="#4a3d7a" stroke-width="1.2" stroke-linecap="round"><line x1="44" y1="24" x2="49" y2="18"/><line x1="44" y1="24" x2="51" y2="24"/><line x1="44" y1="24" x2="49" y2="30"/><line x1="44" y1="24" x2="42" y2="32"/></g><path d="M18 42Q32 52 46 42" stroke="#4a5c28" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><span class="wordmark-text">Aina<em>Dara</em></span><span class="thread">/ pharmacy</span></a><div class="header-actions"><span class="badge live-badge">Live · prototype 0.8</span><button id="theme" class="quiet" aria-label="Toggle dark theme" aria-pressed="false">◐ <span>Theme</span></button></div></header>
     <section class="intro"><div><p class="eyebrow">Pharmacy · simulation lab</p><h1>Infusion <em>practice.</em></h1><p>Choose a profile. Program an infusion. Understand every alert.</p></div><div class="edition"><span class="eyebrow">AinaDara simulation lab</span><p>Independent educational simulator.<br><span id="data-origin">Fictional training values.</span> No real device connection.</p></div></section>
     <nav class="tabs" aria-label="Simulator views"><button class="tab active" data-view="practice" aria-current="page">01 <span>Practice</span></button><button class="tab" data-view="library">02 <span>Drug library</span></button><button class="tab" data-view="debrief">03 <span>Debrief</span></button><span id="library-indicator">Loading training library…</span></nav>
     <main id="workspace" tabindex="-1">
@@ -31,7 +30,7 @@
       <section id="practice-view" aria-label="Practice workspace">
         <p id="active-library-warning" class="notice" hidden></p>
         <p id="institutional-signin-wrap" class="notice" hidden><a id="institutional-signin" href="./library">Sign in to the institutional teaching library →</a><br><span class="small">After authentication, you will return here and the library will load. Use only an account explicitly permitted by the library owner.</span></p>
-        <div class="device-toolbar"><div class="mode" aria-label="Simulator presentation"><button id="setup-mode" aria-pressed="false">Full setup</button><button id="device-mode" aria-pressed="true">Pump screen</button><button id="form-mode" aria-pressed="false">Programming worksheet</button></div><p>Generic modular device · one to four functional channels</p><button id="coaching-toggle" class="quiet" aria-pressed="true">Hide coaching</button></div>
+        <div class="device-toolbar"><div class="mode" aria-label="Simulator presentation"><button id="setup-mode" aria-pressed="false">Full setup</button><button id="device-mode" aria-pressed="true">Pump screen</button><button id="form-mode" aria-pressed="false">Programming worksheet</button></div><p>AinaDara PCU trainer · one to four functional channels</p><button id="global-audio" class="quiet audio-control" aria-pressed="false">Sound off</button><button id="coaching-toggle" class="quiet" aria-pressed="true">Hide coaching</button></div>
         <div class="workspace-bar"><label class="inline-label">Exercise <select id="scenario"><option value="primary">Primary infusion</option><option value="weight">Weight-based infusion</option><option value="limits">Respond to a limit alert</option><option value="alarm">Resolve an occlusion</option></select></label><div class="mode" aria-label="Practice mode"><button id="guided" aria-pressed="true">Guided</button><button id="free" aria-pressed="false">Free practice</button></div><button id="reset" class="quiet">Reset attempt ↺</button></div>
         <div id="setup-statusbar" class="setup-statusbar" hidden><p id="setup-summary"></p><button id="return-setup" class="secondary">Return to setup</button><button id="exit-setup" class="secondary">Skip setup — explore the pump</button></div>
         <div class="practice-grid">

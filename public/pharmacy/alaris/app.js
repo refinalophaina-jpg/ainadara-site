@@ -1,10 +1,12 @@
-import { UNITS, evaluate, validateLibrary, parseCSV, initialState, transition, limitText, softRange, entryLabel, DEVICE_CAPABILITY_MODEL } from './engine.js?v=0.7';
-import { mountDevice } from './device.js?v=0.7';
-import { interpretWorkplaceCSV, isWorkplaceCSV } from './workplace-library.js?v=0.7';
-import { initialSetup, setupTransition, setupReady, SETUP_STEPS } from './setup-engine.js?v=0.7';
-import { mountSetup } from './setup.js?v=0.7';
+import { UNITS, evaluate, validateLibrary, parseCSV, initialState, transition, limitText, softRange, entryLabel, DEVICE_CAPABILITY_MODEL } from './engine.js?v=0.8';
+import { mountDevice } from './device.js?v=0.8';
+import { interpretWorkplaceCSV, isWorkplaceCSV } from './workplace-library.js?v=0.8';
+import { initialSetup, setupTransition, setupReady, SETUP_STEPS } from './setup-engine.js?v=0.8';
+import { mountSetup } from './setup.js?v=0.8';
+import { createAudio } from './audio.js?v=0.8';
 
 const $ = id => document.getElementById(id);
+const sound = createAudio();
 const scenarios = {
   primary: { title:'A primary infusion', description:'Use the order below to choose a profile and program a single primary infusion.', entry:'fluid-adult', dose:125, vtbi:100, weight:'', number:'01' },
   weight: { title:'From dose to flow rate', description:'Program the prescribed weight-based dose. Compare the calculated flow rate with your own calculation before starting.', entry:'pressor-icu', dose:0.08, vtbi:50, weight:70, number:'02' },
@@ -269,6 +271,12 @@ function showView(view) {
 }
 function invalidateImport() { validationRevision++; candidate = null; $('import-result').replaceChildren(); $('apply-import').disabled = true; $('import-confirm').checked = false; }
 function wireEvents() {
+  sound.subscribe(({enabled,level,active,supported})=>{
+    $('global-audio').disabled=!supported;
+    $('global-audio').textContent=!supported?'Sound unavailable':enabled?(active?`Sound on · ${level}`:'Sound on · tap'):'Sound off';
+    $('global-audio').setAttribute('aria-pressed',String(enabled));
+  });
+  $('global-audio').addEventListener('click',()=>sound.toggle());
   for (const next of ['device','form']) $(`${next}-mode`).addEventListener('click',() => setPresentation(next));
   $('setup-mode').addEventListener('click',()=>{
     if(!setupEnabled){if(!mayReset())return;setupEnabled=true;configureExercise();}
@@ -308,7 +316,7 @@ function wireEvents() {
   $('download-attempt').addEventListener('click',() => {
     storeActiveChannel();
     const channels=CHANNEL_IDS.slice(0,moduleCount).map(id=>{const session=channelSessions[id],s=session.state;return {channel:id,status:s.status,program:s.program||session.program,entry:s.entry,profileConfirmed:s.profileConfirmed,orderCheckAcknowledged:s.acknowledged,deliveredMl:s.delivered,simulatedSeconds:s.elapsed,events:s.events};});
-    const report = { application:'AinaDara infusion practice', prototypeVersion:'0.7', trainingOnly:true, exportedAt:new Date().toISOString(), mode, scenario:mode === 'guided' ? $('scenario').value : null, moduleCount, activeChannel, channels, setup:{enabled:setupEnabled,complete:setupReady(setupState),stepsComplete:setupState.step,events:setupState.events,container:'generic prepared primary bag',physicalTechniqueAssessed:false}, library:{name:library.name,version:library.version,effectiveDate:library.effectiveDate,source:imported ? 'local import' : 'fictional demo',provenance:library.source||null}, status:state.status, program:state.program, entry:state.entry, deviceCapabilityModel:{id:DEVICE_CAPABILITY_MODEL.id,version:DEVICE_CAPABILITY_MODEL.modelVersion,institutionVerified:DEVICE_CAPABILITY_MODEL.institutionVerified}, assessmentMode:assessmentMode(), profileConfirmed:state.profileConfirmed, orderCheckAcknowledged:state.acknowledged, deliveredMl:state.delivered, simulatedSeconds:state.elapsed, checkpoints:checkpoints(), events:state.events, reflection:$('reflection').value };
+    const report = { application:'AinaDara infusion practice', prototypeVersion:'0.8', trainingOnly:true, exportedAt:new Date().toISOString(), mode, scenario:mode === 'guided' ? $('scenario').value : null, moduleCount, activeChannel, channels, setup:{enabled:setupEnabled,complete:setupReady(setupState),stepsComplete:setupState.step,events:setupState.events,container:'generic prepared primary bag',physicalTechniqueAssessed:false}, library:{name:library.name,version:library.version,effectiveDate:library.effectiveDate,source:imported ? 'local import' : 'fictional demo',provenance:library.source||null}, status:state.status, program:state.program, entry:state.entry, deviceCapabilityModel:{id:DEVICE_CAPABILITY_MODEL.id,version:DEVICE_CAPABILITY_MODEL.modelVersion,institutionVerified:DEVICE_CAPABILITY_MODEL.institutionVerified}, assessmentMode:assessmentMode(), profileConfirmed:state.profileConfirmed, orderCheckAcknowledged:state.acknowledged, deliveredMl:state.delivered, simulatedSeconds:state.elapsed, checkpoints:checkpoints(), events:state.events, reflection:$('reflection').value };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})); const a = node('a'); a.href = url; a.download = 'ainadara-infusion-attempt.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url),1000);
   });
   for(const id of ['library-search','library-profile','library-support'])$(id).addEventListener('input',()=>{libraryPage=0;renderLibrary();});
@@ -361,6 +369,7 @@ try {
   demo = result.library; library = demo;
   wireEvents(); configureExercise(); renderLibrary();
   device = mountDevice($('device-host'),{
+    audio:sound,
     context:() => ({state, entry:entry(), program:program(), library, imported, editable:editable(), setupComplete:!setupEnabled||setupReady(setupState), lineChecked:$('line-checked').checked, mode:assessmentMode(),activeChannel,moduleCount,channels:channelContexts()}),
     selectChannel,
     setModuleCount,
@@ -377,7 +386,7 @@ try {
     format:fmt, time,
   });
   setupScene=mountSetup($('setup-host'),{
-    state:()=>setupState,running:()=>channelContexts().some(channel=>channel.status==='running'),
+    audio:sound,state:()=>setupState,running:()=>channelContexts().some(channel=>channel.status==='running'),
     act:target=>{if(setupReady(setupState))return;setupState=setupTransition(setupState,{type:'act',target});render();},
     zoom:()=>{if(!setupReady(setupState))return;setPresentation('device');if(!state.events.length)$('device-startup').click();$('device-host').scrollIntoView({block:'start'});$('pcu-power').focus({preventScroll:true});},
   });

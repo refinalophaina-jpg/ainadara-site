@@ -1,6 +1,6 @@
 // Pure training rules. No device connection or clinical recommendations.
-import { csvRecords } from './csv.js?v=0.7';
-import { checkDeviceProgram, displayRate, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.7';
+import { csvRecords } from './csv.js?v=0.8';
+import { checkDeviceProgram, displayRate, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.8';
 export { DEVICE_CAPABILITY_MODEL, displayRate };
 export const UNITS = {
   'mL/h': { amount: 'mL', weight: false, factor: 1 },
