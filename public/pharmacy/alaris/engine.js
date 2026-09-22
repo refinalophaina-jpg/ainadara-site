@@ -2,6 +2,7 @@
 import { csvRecords } from './csv.js?v=0.8';
 import { checkDeviceProgram, displayRate, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.8';
 export { DEVICE_CAPABILITY_MODEL, displayRate };
+export const PROTOTYPE_VERSION='0.8.1';
 export const UNITS = {
   'mL/h': { amount: 'mL', weight: false, factor: 1 },
   'mg/h': { amount: 'mg', weight: false, factor: 1 },

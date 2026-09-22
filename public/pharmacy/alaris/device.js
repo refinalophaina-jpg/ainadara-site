@@ -1,4 +1,4 @@
-import { UNITS, evaluate, softRange, limitText } from './engine.js?v=0.8';
+import { UNITS, evaluate, softRange, limitText, PROTOTYPE_VERSION } from './engine.js?v=0.8.1-c1271dc';
 import { displayRate, displayModuleRate, capabilityRows, DEVICE_CAPABILITY_MODEL } from './device-profile.js?v=0.8';
 import { createAudio } from './audio.js?v=0.8';
 
@@ -27,7 +27,7 @@ export function mountDevice(host, api) {
       <div class="device-assembly" tabindex="0" aria-label="Pump controls. Use the side buttons and numeric keypad.">
         <div id="module-bank-left" class="module-bank module-bank-left" aria-label="Left pump modules">${['A','B'].map(moduleMarkup).join('')}</div>
         <section class="pcu" aria-label="Patient care unit simulator">
-          <div class="pcu-brand"><span>AINADARA <strong>PCU</strong></span><small>SIMULATION</small></div>
+          <div class="pcu-brand"><span>AINADARA <strong>TRAINER</strong></span><small>SIMULATION</small></div>
           <div class="pcu-display">
             <div class="softkeys left-keys" aria-label="Left screen keys"></div>
             <div class="lcd" aria-label="Pump LCD">
@@ -358,7 +358,7 @@ export function mountDevice(host, api) {
       action(1,'EXIT',()=>go('options'));
       footer=`>${DEVICE_CAPABILITY_MODEL.institutionVerified?'Institution verified':'No — reference defaults, not this institution\u2019s configuration'} · model ${DEVICE_CAPABILITY_MODEL.modelVersion} · separate from the drug library`;
     }else if(view==='software'){
-      title='SOFTWARE VERSIONS';row('Trainer interface','AinaDara prototype 0.8');row('Simulation engine','0.8 · browser runtime');row('Reference workflow','Public user manual · v12.1');row('Device firmware','Not installed or connected');row('Institution settings',c.imported?'Private library loaded':'Fictional demo data');
+      title='SOFTWARE VERSIONS';row('Trainer interface',`AinaDara prototype ${PROTOTYPE_VERSION}`);row('Simulation engine',`${PROTOTYPE_VERSION} · browser runtime`);row('Reference workflow','Public user manual · v12.1');row('Your pump firmware','Not verified · no device connected');row('Institution settings',c.imported?'Private library loaded':'Fictional demo data');
       action(1,'EXIT',()=>go('overview'));footer='>Training implementation · not manufacturer software';
     }else if(view==='audio'){
       title='AUDIO VOLUME ADJUST';
