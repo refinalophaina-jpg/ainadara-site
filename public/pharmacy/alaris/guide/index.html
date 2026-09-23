@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <meta name="description" content="Explore AinaDara’s device-guide preview with source-linked examples from the older v12.1 manual. Not verified for your pump or bedside use.">
+  <title>Device Guide · Preview — AinaDara</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="./guide.css"><script src="./theme.js"></script>
+  <script type="module" src="./guide.js"></script>
+</head>
+<body>
+  <a class="skip" href="#search">Skip to search</a>
+  <div class="shell">
+    <header class="masthead">
+      <a class="brand" href="https://ainadara.com" aria-label="AinaDara home"><img src="./favicon.svg" alt="" width="36" height="36"><span>Aina<em>Dara</em></span><small>/ pharmacy</small></a>
+      <nav aria-label="Guide navigation"><a href="https://ainadara.com/pharmacy/alaris/">Simulator <span class="nav-note">· practice only</span></a><button id="theme" aria-pressed="false">Dark theme</button></nav>
+    </header>
+    <div class="preview-notice"><strong>Older-manual preview · v12.1</strong><span>For exploring the guide. Not verified for your pump; do not use for patient care.</span></div>
+    <main>
+      <section class="search-area" aria-labelledby="guide-title">
+        <div class="title-row"><h1 id="guide-title">Device Guide</h1><a class="source-link" href="#sources">Source status</a></div>
+        <form id="search-form" role="search" autocomplete="off">
+          <label for="search">Find a message, task or control</label>
+          <div class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><input id="search" type="search" maxlength="160" placeholder="Try “occlusion”, “battery” or “profile”" aria-describedby="search-note" spellcheck="false" autocomplete="off"><button type="button" id="clear-search" hidden>Clear</button></div>
+          <p id="search-note" class="quiet-text">Search stays on this device. Examples cite the older manual; other topics remain outlines. Do not enter patient information.</p>
+        </form>
+      </section>
+      <div class="workspace" id="workspace">
+        <section class="browser-pane" aria-label="Browse guide topics">
+          <div class="filters"><div><label for="category-filter" class="filter-label">Browse</label><select id="category-filter"><option value="all">All topics</option><option value="messages">Messages &amp; alarms</option><option value="tasks">Everyday tasks</option><option value="controls">Controls &amp; components</option><option value="saved" id="saved-count">Saved topics (0)</option></select></div>
+          <div><label for="module-filter" class="filter-label">Component</label><select id="module-filter"><option value="all">Any / not sure</option><option value="control">Control unit</option><option value="pump">Pump module</option><option value="other">Other / unconfirmed module</option></select></div></div>
+          <div class="results-heading"><h2 id="results-heading">Topic outlines</h2><span id="result-count" role="status" aria-live="polite"></span></div>
+          <p class="quiet-text" id="result-context">Content pending for every topic.</p>
+          <ul id="results" aria-labelledby="results-heading"></ul>
+          <div id="no-results" hidden><h3>No matching topic</h3><p>Try fewer words, choose another component, or browse all topics. No alternative procedure has been selected.</p><button id="reset-filters" class="secondary">Browse all topics</button><a href="#sources">View source status</a></div>
+        </section>
+        <section id="reader" class="reader" aria-label="Topic and source details" tabindex="-1"></section>
+      </div>
+    </main>
+    <footer><span>AinaDara · Device Guide <span id="guide-version"></span></span><p>Independent historical-reference preview. Not affiliated with or endorsed by BD. No patient data or real-device connection.</p><a href="#about">About this preview</a></footer>
+    <p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
+    <noscript><section class="no-script"><h2>This preview needs JavaScript for search.</h2><p>Older-manual examples are not verified for your pump or patient care. Current documentation remains pending.</p><a href="https://bd.com/self-service">BD source-document portal</a></section></noscript>
+  </div>
+</body>
+</html>
