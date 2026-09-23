@@ -17,20 +17,21 @@
       <a class="brand" href="https://ainadara.com" aria-label="AinaDara home"><img src="./favicon.svg" alt="" width="36" height="36"><span>Aina<em>Dara</em></span><small>/ pharmacy</small></a>
       <nav aria-label="Guide navigation"><a href="https://ainadara.com/pharmacy/alaris/">Simulator <span class="nav-note">· practice only</span></a><button id="theme" aria-pressed="false">Dark theme</button></nav>
     </header>
-    <div class="preview-notice"><strong>Older-manual preview · v12.1</strong><span>For exploring the guide. Not verified for your pump; do not use for patient care.</span></div>
+    <div class="preview-notice"><strong>Reference preview · source-labeled</strong><span>For exploring the guide. Not verified for your pump; do not use for patient care.</span></div>
     <main>
       <section class="search-area" aria-labelledby="guide-title">
         <div class="title-row"><h1 id="guide-title">Device Guide</h1><a class="source-link" href="#sources">Source status</a></div>
         <form id="search-form" role="search" autocomplete="off">
           <label for="search">Find a message, task or control</label>
           <div class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg><input id="search" type="search" maxlength="160" placeholder="Try “occlusion”, “battery” or “profile”" aria-describedby="search-note" spellcheck="false" autocomplete="off"><button type="button" id="clear-search" hidden>Clear</button></div>
-          <p id="search-note" class="quiet-text">Search stays on this device. Examples cite the older manual; other topics remain outlines. Do not enter patient information.</p>
+          <p id="search-note" class="quiet-text">Search stays on this device. Every summary identifies its source edition. Do not enter patient information.</p>
         </form>
       </section>
       <div class="workspace" id="workspace">
         <section class="browser-pane" aria-label="Browse guide topics">
-          <div class="filters"><div><label for="category-filter" class="filter-label">Browse</label><select id="category-filter"><option value="all">All topics</option><option value="messages">Messages &amp; alarms</option><option value="tasks">Everyday tasks</option><option value="controls">Controls &amp; components</option><option value="saved" id="saved-count">Saved topics (0)</option></select></div>
+          <div class="filters"><div><label for="category-filter" class="filter-label">Browse</label><select id="category-filter"><option value="all">All topics</option><option value="messages">Messages &amp; alarms</option><option value="tasks">Everyday tasks</option><option value="controls">Controls &amp; concepts</option><option value="care">Equipment care</option><option value="saved" id="saved-count">Saved topics (0)</option></select></div>
           <div><label for="module-filter" class="filter-label">Component</label><select id="module-filter"><option value="all">Any / not sure</option><option value="control">Control unit</option><option value="pump">Pump module</option><option value="other">Other / unconfirmed module</option></select></div></div>
+          <div class="content-filter"><label for="content-filter" class="filter-label">Content</label><select id="content-filter"><option value="all">All content</option><option value="available">Summaries &amp; examples</option><option value="pending">Pending procedures</option></select></div>
           <div class="results-heading"><h2 id="results-heading">Topic outlines</h2><span id="result-count" role="status" aria-live="polite"></span></div>
           <p class="quiet-text" id="result-context">Content pending for every topic.</p>
           <ul id="results" aria-labelledby="results-heading"></ul>

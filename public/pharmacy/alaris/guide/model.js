@@ -4,9 +4,9 @@ export function normalize(value = '') {
   return String(value).normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-export function searchTopics(query, { category = 'all', module = 'all', saved = [] } = {}) {
+export function searchTopics(query, { category = 'all', module = 'all', availability = 'all', saved = [] } = {}) {
   const q = normalize(query);
-  return TOPICS.filter(t => (category === 'all' || (category === 'saved' ? saved.includes(t.id) : category === t.category)) && (module === 'all' || module === t.module)).map(topic => {
+  return TOPICS.filter(t => (category === 'all' || (category === 'saved' ? saved.includes(t.id) : category === t.category)) && (module === 'all' || t.discoveryModules.includes(module)) && (availability === 'all' || (availability === 'available' ? t.status === 'historical-preview' : t.status === 'content-pending'))).map(topic => {
     const title = normalize(topic.title), aliases = topic.aliases.map(normalize);
     const words = normalize([topic.title, ...topic.aliases].join(' '));
     let score = !q ? 1 : title === q ? 100 : aliases.includes(q) ? 90 : title.startsWith(q) ? 70 : q.split(' ').every(w => words.includes(w)) ? 40 : 0;

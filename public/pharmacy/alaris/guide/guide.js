@@ -1,11 +1,11 @@
-import { TOPICS, CATEGORY_LABELS, MODULE_LABELS, SOURCES, GUIDE_VERSION, HISTORICAL_EXAMPLES, MANUAL_URL } from './topics.js';
+import { TOPICS, CATEGORY_LABELS, MODULE_LABELS, SOURCES, GUIDE_VERSION, HISTORICAL_EXAMPLES, CONTENT_COUNTS, RELATED_TOPICS } from './topics.js';
 import { searchTopics, safeSaved, FINDER, finderStep } from './model.js';
 
 const $ = selector => document.querySelector(selector);
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let saved = [];
 try { saved = safeSaved(JSON.parse(localStorage.getItem('ainadara-guide-saved') || '[]')); } catch { /* Memory-only fallback. */ }
-let state = { query: '', category: 'all', module: 'all', finder: [], config: {} };
+let state = { query: '', category: 'all', module: 'all', availability: 'all', finder: [], config: {} };
 let historyKey = 0, nextHistoryKey = 1, historyPosition = 0;
 let historyTrail = [0], currentHash = location.hash;
 const memoryHistory = new Map();
@@ -65,12 +65,13 @@ function renderResults() {
   $('#module-filter').value = state.module;
   $('#clear-search').hidden = !state.query;
   $('#category-filter').value = state.category;
+  $('#content-filter').value = state.availability;
   $('#saved-count').textContent = `Saved topics (${saved.length})`;
   const results = searchTopics(state.query, { ...state, saved });
   $('#results-heading').textContent = state.category === 'all' ? 'Guide topics' : CATEGORY_LABELS[state.category];
   $('#result-count').textContent = `${results.length} ${results.length === 1 ? 'topic' : 'topics'}`;
-  $('#result-context').textContent = state.query && results.length > 1 ? 'Choose the topic and component. No match is selected automatically.' : '4 older-manual examples · 9 pending outlines.';
-  $('#results').innerHTML = results.map(({ topic, match }) => `<li><a class="topic-link" href="#topic/${topic.id}"${location.hash === '#topic/' + topic.id ? ' aria-current="page"' : ''}><strong>${escape(topic.title)}</strong><small>${escape(MODULE_LABELS[topic.module])} · ${HISTORICAL_EXAMPLES[topic.id] ? 'v12.1 example' : 'Content pending'}</small>${match ? `<small>${escape(match)}</small>` : ''}</a></li>`).join('');
+  $('#result-context').textContent = state.query && results.length > 1 ? 'Choose the topic and component. No match is selected automatically.' : `${CONTENT_COUNTS.available} source-linked entries · ${CONTENT_COUNTS.pending} pending outlines.`;
+  $('#results').innerHTML = results.map(({ topic, match }) => `<li><a class="topic-link" href="#topic/${topic.id}"${location.hash === '#topic/' + topic.id ? ' aria-current="page"' : ''}><strong>${escape(topic.title)}</strong><small>${escape(MODULE_LABELS[topic.module])} · ${HISTORICAL_EXAMPLES[topic.id] ? escape(SOURCES.find(s => s.id === topic.sourceIds[0]).shortLabel) : 'Content pending'}</small>${match ? `<small>${escape(match)}</small>` : ''}</a></li>`).join('');
   $('#no-results').hidden = Boolean(results.length);
   $('#no-results h3').textContent = state.category === 'saved' && !saved.length ? 'No saved topics yet' : 'No matching topic';
   $('#no-results p').textContent = state.category === 'saved' && !saved.length ? 'Open a topic and choose Save topic. Only topic IDs are saved on this device—not searches or clinical information.' : 'Try fewer words, choose another component, or browse all topics. No alternative procedure has been selected.';
@@ -78,7 +79,7 @@ function renderResults() {
 
 function backRow(extra = '') { return `<div class="detail-top"><a href="#topics">Back to results</a>${extra}</div>`; }
 function welcome() {
-  return `<div class="welcome"><h2>Try an older-manual example</h2><p class="intro-copy">Explore a short answer, follow a reading walkthrough, or open the exact source page. These examples are not verified for your pump.</p><div class="example-links"><a href="#topic/software-versions">Find software versions <span>Reading walkthrough</span></a><a href="#topic/battery">View battery runtime <span>Reading walkthrough</span></a><a href="#topic/air-in-line">Understand an air-in-line message <span>Summary only</span></a><a href="#topic/alarm-silence">Understand alarm silence <span>Summary only</span></a></div><a class="secondary" href="#finder">Help me find a topic</a>
+  return `<div class="welcome"><h2>Find the message. Understand the context.</h2><p class="intro-copy">${CONTENT_COUNTS.available} short, source-linked entries: message meanings, version differences, equipment care and two reading walkthroughs. Not verified for your pump.</p><div class="browse-shortcuts"><a href="#browse/messages">Browse messages</a><a href="#browse/controls">Understand controls</a><a href="#browse/care">Equipment care</a></div><h3>Start with a question</h3><div class="example-links"><a href="#topic/occluded-patient">Which side is occluded? <span>Compare patient-side and fluid-side messages</span></a><a href="#topic/battery">What does the battery display mean? <span>Runtime, low charge and discharged states</span></a><a href="#topic/infusion-complete">Why does completion look different? <span>A documented change between source versions</span></a><a href="#topic/software-versions">Find software versions <span>Reading walkthrough</span></a><a href="#topic/iui-inspection">What is an IUI connector? <span>Inspection-sheet orientation</span></a></div><a class="secondary" href="#finder">Help me find a topic</a>
   <div class="source-summary"><h3>Current-device guidance is still pending</h3><p>We will update the examples after the corrected source pack arrives and its applicability is checked. Set-loading and infusion-programming procedures remain unavailable.</p><a href="#sources">View source status</a></div></div>`;
 }
 
@@ -90,16 +91,23 @@ function topicView(topic) {
   <span class="reading-label">Content pending</span><h2 id="detail-title">${escape(topic.title)}</h2><p class="detail-meta">${escape(MODULE_LABELS[topic.module])} · Preview topic outline</p>
   <div class="pending"><h3>Instructions not yet available</h3><p>We are waiting for the corrected manual and confirmation that it applies to this configuration. The supplied v12.1 manual has not been verified for it.</p><p>This preview demonstrates how to find a topic; it does not provide operating steps.</p><div class="actions"><a class="primary" href="#sources">View source status</a><a href="#topics">Back to topics</a></div></div>
   <h3>What this answer will include</h3><p class="detail-meta">Applicable components and software, essential precautions, a concise complete procedure, expected outcomes and page-level source references. These sections are intentionally unpopulated until the content is reviewed.</p>
-  <div class="source-summary"><h3>No reviewed instructions for this configuration</h3><p>Choosing a version, saving a topic or using the simulator does not confirm applicability. Guided device troubleshooting is not available in this preview.</p></div>`;
+  <div class="source-summary"><h3>No reviewed instructions for this configuration</h3><p>Choosing a version, saving a topic or using the simulator does not confirm applicability. Guided device troubleshooting is not available in this preview.</p></div>${relatedView(topic)}`;
+}
+
+function relatedView(topic) {
+  const ids = HISTORICAL_EXAMPLES[topic.id]?.related || RELATED_TOPICS[topic.id] || [];
+  return ids.length ? `<nav class="related-topics" aria-label="Related topics"><h3>Keep the distinctions clear</h3><ul>${ids.map(id => TOPICS.find(t => t.id === id)).filter(Boolean).map(t => `<li><a href="#topic/${t.id}">${escape(t.title)}<span>${HISTORICAL_EXAMPLES[t.id] ? 'Read summary' : 'Procedure pending'}</span></a></li>`).join('')}</ul></nav>` : '';
 }
 
 function historicalView(topic, example, isSaved) {
+  const source = SOURCES.find(s => s.id === topic.sourceIds[0]);
+  const manual = source.id === 'historical-manual';
   return `${backRow(`<button id="save-topic" data-topic="${topic.id}" aria-pressed="${isSaved}">${isSaved ? 'Remove saved topic' : 'Save topic'}</button>`)}
-  <span class="reading-label">Older-manual example · not device-verified</span><h2 id="detail-title">${escape(topic.title)}</h2><p class="detail-meta">${escape(MODULE_LABELS[topic.module])} · v12.1 / January 2020 / P00000225</p>
-  <div class="historical-boundary"><strong>Study preview, not bedside guidance.</strong><p>This is a short adaptation of an older source, not the complete procedure or a match to your pump. For actual device use, follow your current manufacturer documentation and local policy.</p></div>
+  <span class="reading-label">${manual ? 'Older-manual example' : 'Source-linked reference'} · not device-verified</span><h2 id="detail-title">${escape(topic.title)}</h2><p class="detail-meta">${escape(MODULE_LABELS[topic.module])} · ${escape(source.edition)}</p>
+  <div class="historical-boundary"><strong>Study preview, not bedside guidance.</strong><p>This is a brief source summary, not a complete procedure or a verified match to your pump. For actual device use, follow your current manufacturer documentation and local policy.</p></div>
   <h3>At a glance</h3><p>${escape(example.summary)}</p>
   ${example.steps.length ? `<section class="walkthrough" aria-labelledby="walkthrough-title"><h3 id="walkthrough-title">Reading walkthrough</h3><p class="quiet-text">All steps stay visible. Highlighting a step only moves through this page; it does not operate or verify a device.</p><ol class="manual-steps">${example.steps.map((step, i) => `<li data-reading-step="${i}"><p>${escape(step)}</p></li>`).join('')}</ol><div class="actions"><button id="reading-start">Walk through this example</button><button id="reading-prev" hidden>Previous step</button><button id="reading-next" hidden>Next step</button><button id="reading-reset" hidden>Show all equally</button></div><p class="quiet-text reading-progress" role="status" aria-live="polite"></p></section>` : ''}
-  <p class="example-note">${escape(example.note)}</p><div class="source-summary"><h3>Check the source</h3><p>Historical manual · printed p. ${escape(example.printedPages)} · PDF viewer ${example.pdfPages.length > 1 ? 'pages' : 'page'} ${example.pdfPages.join('–')}. Text/page-reference check only; no current-device validation.</p><div class="actions">${example.pdfPages.map(page => `<a href="${MANUAL_URL}#page=${page}" target="_blank" rel="noopener noreferrer">Open PDF page ${page}<span class="sr-only"> (new tab)</span></a>`).join('')}<a href="#sources">Version &amp; correction status</a></div></div>`;
+  <p class="example-note">${escape(example.note)}</p><div class="source-summary"><h3>Check the source</h3><p>${escape(source.title)}${example.printedPages ? ` · printed p. ${escape(example.printedPages)} · PDF viewer ${example.pdfPages.length > 1 ? 'pages' : 'page'} ${example.pdfPages.join('–')}` : ''}. Text${example.pdfPages.length ? '/page-reference' : ''} check only; no current-device validation.</p><div class="actions">${example.pdfPages.length ? example.pdfPages.map(page => `<a href="${source.url}#page=${page}" target="_blank" rel="noopener noreferrer">Open PDF page ${page}<span class="sr-only"> (new tab)</span></a>`).join('') : `<a href="${source.url}" target="_blank" rel="noopener noreferrer">${escape(source.link)}<span class="sr-only"> (new tab)</span></a>`}<a href="#sources">Version &amp; correction status</a></div></div>${relatedView(topic)}`;
 }
 
 function readingStep(index) {
@@ -137,7 +145,7 @@ function finderView() {
 }
 
 function aboutView() {
-  return `${backRow()}<h2 id="detail-title">About this preview</h2><p class="intro-copy">A historical-source preview, not a current-device reference.</p><ul class="about-list"><li>Four brief examples use the older v12.1 manual. Other topics remain outlines.</li><li>Topic names and aliases are navigation labels—not a verified catalog for your installed software.</li><li>Reading walkthroughs are not competency checks. No dosing, infusion-programming or set-loading procedures are supplied.</li><li>There are no generated answers or device connections.</li><li>Searches and reported configuration stay in memory. Only theme preference and saved public topic IDs use this browser’s storage.</li><li>There is no institutional library, telemetry or offline instruction cache. Fonts may load from Google Fonts; search text is never sent there.</li></ul><div class="actions"><a href="#sources" class="primary">View source status</a><button id="clear-saved">Clear saved topics</button></div>`;
+  return `${backRow()}<h2 id="detail-title">About this preview</h2><p class="intro-copy">A source-linked learning reference, not a current-device operating guide.</p><ul class="about-list"><li>${CONTENT_COUNTS.available} entries draw on the older manual, a later release note, manufacturer resources and an FDA notice; ${CONTENT_COUNTS.pending} procedures remain outlines. Each entry identifies its own source.</li><li>Topic names and aliases are navigation labels—not a verified catalog for your installed software.</li><li>Reading walkthroughs are not competency checks. No dosing, infusion-programming or set-loading procedures are supplied.</li><li>There are no generated answers or device connections.</li><li>Searches and reported configuration stay in memory. Only theme preference and saved public topic IDs use this browser’s storage.</li><li>There is no institutional library, telemetry or offline instruction cache. Fonts may load from Google Fonts; search text is never sent there.</li></ul><div class="actions"><a href="#sources" class="primary">View source status</a><button id="clear-saved">Clear saved topics</button></div>`;
 }
 
 function renderReader(focus = false) {
@@ -165,7 +173,7 @@ function renderReader(focus = false) {
 }
 
 function browse(category = 'all', module = 'all') {
-  navigate('#topics', { category: CATEGORY_LABELS[category] ? category : 'all', module, query: '' });
+  navigate('#topics', { category: CATEGORY_LABELS[category] ? category : 'all', module, availability: 'all', query: '' });
 }
 
 document.addEventListener('click', event => {
@@ -222,6 +230,7 @@ $('#search-form').addEventListener('submit', event => { event.preventDefault(); 
 $('#clear-search').addEventListener('click', () => { state.query = ''; renderResults(); $('#search').focus(); });
 $('#module-filter').addEventListener('change', event => navigate('#topics', { module: event.target.value }));
 $('#category-filter').addEventListener('change', event => navigate('#topics', { category: event.target.value }));
+$('#content-filter').addEventListener('change', event => navigate('#topics', { availability: event.target.value }));
 $('#reset-filters').addEventListener('click', () => browse());
 document.addEventListener('submit', event => {
   if (event.target.id !== 'config-form') return;
