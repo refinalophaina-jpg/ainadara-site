@@ -5,6 +5,6 @@
   "glyph": "spiral",
   "live": true,
   "order": 2,
-  "blurb": "Therapeutic drug monitoring.  \n— AUC-guided vancomycin dosing utilizing Bayesian precision fitting",
-  "version": "Vancomycin TDM v3.0 "
+  "blurb": "Therapeutic drug monitoring\n\n— AUC-guided vancomycin dosing utilizing Bayesian precision fitting",
+  "version": "Vancomycin TDM v3.9.0 "
 }
