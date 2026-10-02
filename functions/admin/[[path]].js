@@ -82,9 +82,21 @@ function parseCookies(request) {
   return out;
 }
 
-/** Session cookie: 8h Max-Age, Strict — same-site only, never sent cross-site. */
+/**
+ * Session cookie: 8h Max-Age, SameSite=Lax. It MUST be Lax, not Strict, for the
+ * same reason the state cookie is (see below): it is *set* on the /admin/callback
+ * response, which the browser reached via a top-level navigation initiated by
+ * github.com, and must then be *sent* on the immediate redirect to /admin — the
+ * next hop of that same cross-site-initiated navigation. Safari in particular
+ * drops a Strict cookie on exactly that request, so /admin never sees the session
+ * and sign-in loops back to the sign-in page. Lax does not weaken CSRF protection
+ * here: every mutating request (/api/save, /api/upload, /admin/logout) is POST and
+ * additionally gated by originOk() (a same-origin Origin check), and Lax is not
+ * sent on cross-site fetch/XHR anyway — only on top-level GET navigations, which
+ * reach read-only pages whose responses a cross-site caller cannot read.
+ */
 function sessionCookie(value, maxAgeSeconds) {
-  return `${SESSION_COOKIE}=${encodeURIComponent(value)}; Path=/admin; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAgeSeconds}`;
+  return `${SESSION_COOKIE}=${encodeURIComponent(value)}; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
 }
 
 /**
@@ -94,9 +106,10 @@ function sessionCookie(value, maxAgeSeconds) {
  * initiated by github.com (a cross-site redirect), and a Strict cookie is
  * dropped on exactly that kind of request, so the flow would never see its
  * own state value and every sign-in would fail the mismatch check below.
- * This is a real constraint of how browsers apply SameSite, not a relaxation
- * of the spec's session-cookie requirement — the long-lived session cookie
- * stays Strict.
+ * This is a real constraint of how browsers apply SameSite. The session cookie
+ * (above) is Lax for the same reason, since it too is established across this
+ * cross-site redirect; mutation requests are protected by originOk(), not by the
+ * cookie's strictness.
  */
 function stateCookie(value, maxAgeSeconds) {
   return `${STATE_COOKIE}=${encodeURIComponent(value)}; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
